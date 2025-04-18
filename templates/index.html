@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProteinDance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Protein Dance</h1>
+    <h1 class="sub-title">基于DeepSeek的蛋白质预测智能体</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-list">
+        {% for category, msg in messages %}
+          <li class="flash {{ category }}">{{ msg }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="/" method="post" class="form">
+      <input type="text" name="disease" placeholder="输入疾病名称（中文）" required class="input">
+      <button type="submit" class="btn">提交</button>
+    </form>
+  </div>
+</body>
+</html>

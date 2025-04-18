@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择候选蛋白</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2 class="subtitle">疾病：{{ disease }}</h2>
+    <p>请选择潜在靶点蛋白：</p>
+    <form action="{{ url_for('candidates') }}" method="post">
+        <ul class="list">
+            {% for prot in proteins %}
+            <li class="list-item">
+                <button type="submit"
+                        name="keyword"
+                        value="{{ prot }}"
+                        class="btn-list">
+                    {{ prot }}
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </form>
+</div>
+</body>
+</html>

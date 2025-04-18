@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniProt 条目</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2 class="subtitle">UniProt 匹配结果</h2>
+    <form action="{{ url_for('result') }}" method="post">
+      <ul class="list">
+        {% for c in candidates %}
+          <li class="list-item">
+            <label>
+              <input type="radio" name="accession" value="{{ c.accession }}" required>
+              <span>{{ c.entry_name }} ({{ c.accession }}) — {{ c.protein_name }}</span>
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+      <button type="submit" class="btn">查看结果</button>
+    </form>
+  </div>
+</body>
+</html>

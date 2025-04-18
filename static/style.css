@@ -1,0 +1,102 @@
+/* 全局布局 */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+}
+
+.container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+}
+
+.form {
+    display: flex;
+    gap: 12px;
+}
+
+.input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.btn {
+    padding: 10px 16px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+}
+
+.list-item {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.list-item:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fasta {
+    background: #f0f0f0;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.flash-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.flash {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.flash.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.sub-title{
+    text-align: center;
+    font-size: 1.2rem;
+    color: #11557C;
+    margin-bottom: 20px;
+}

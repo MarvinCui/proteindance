@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>预测结果</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2 class="subtitle">{{ entry_name }} ({{ accession }})</h2>
+    <section class="card">
+      <h3>FASTA 序列</h3>
+      <pre class="fasta">{{ fasta }}</pre>
+    </section>
+    <section class="card">
+      <h3>AlphaFold 预测结构</h3>
+      <ul>
+        {% for url in pdb_urls %}
+          <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    <a href="{{ url_for('index') }}" class="btn">重新开始</a>
+  </div>
+</body>
+</html>
