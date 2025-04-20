@@ -1,0 +1,32 @@
+{
+  "name": "proteindance",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/realwangrenlin/proteindance.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/realwangrenlin/proteindance/issues"
+  },
+  "homepage": "https://github.com/realwangrenlin/proteindance#readme",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.4"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/style.css -o ./static/output.css --minify",
+    "watch:css": "tailwindcss -i ./static/style.css -o ./static/output.css --watch"
+  }
+}
