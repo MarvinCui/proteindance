@@ -5,6 +5,7 @@ from requests.exceptions import HTTPError
 from dotenv import load_dotenv
 from openai import OpenAI
 from Bio.PDB.alphafold_db import get_predictions
+import re
 
 UNIPROT_BASE = "https://rest.uniprot.org/uniprotkb"
 DS_MODEL_NAME = os.getenv('DS_MODEL_NAME', 'deepseek-chat')
@@ -64,16 +65,26 @@ def get_target_proteins(client, model_name, disease):
         f'''请以 JSON 数组形式，仅返回导致疾病“{disease}”的5个潜在靶点蛋白关键词（英文，可用于UniProt查询），不要其他文字。如["SLC6A4", "MAOA", "HTR2A", "COMT", "BDNF"]'''
     )
     raw = call_ai(client, model_name, prompt)
-    print(raw)
     if not raw:
         return []
+
+    # 用正则提取最外层的 [...] 部分
+    match = re.search(r'\[.*\]', raw, re.S)
+    if not match:
+        print("未能在返回中找到 JSON 数组")
+        return []
+
+    json_str = match.group(0)
+
     try:
-        arr = json.loads(raw.strip())
+        arr = json.loads(json_str)
         if isinstance(arr, list) and all(isinstance(x, str) for x in arr):
             return arr
-    except json.JSONDecodeError:
-        print(json.JSONDecodeError)
-        pass
+        else:
+            print("解析后不是字符串列表：", arr)
+    except json.JSONDecodeError as e:
+        print("JSON 解码失败：", e)
+
     return []
 
 
@@ -129,20 +140,14 @@ def fetch_fasta(accession):
 def predict_structure(accession):
     """
     Retrieve AlphaFold predictions for a UniProt accession.
-    Returns list of PDB URLs (strings).
+    Returns a list of prediction dicts (each containing model_id, pdbUrl, paeUrl, etc.).
     """
-    for pred in get_predictions(accession):
-        # pred 是包含 model_id、pdbUrl、paeUrl 等键的 dict
-        print(f"PDB URL: {pred.get('pdbUrl')}")
-    urls = []
     try:
-        for pred in get_predictions(accession):
-            url = pred.get('pdbUrl')
-            print(pred)
-            print(url)
-            if url:
-                urls.append(url)
-    except Exception:
-        print(Exception)
-        pass
-    return urls
+        preds = get_predictions(accession)
+    except Exception as e:
+        print("Error retrieving predictions:", e)
+        return []
+
+
+
+    return preds

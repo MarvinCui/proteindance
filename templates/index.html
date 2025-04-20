@@ -1,28 +1,62 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ProteinDance</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProteinDance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">Protein Dance</h1>
-    <h1 class="sub-title">基于DeepSeek的蛋白质预测智能体</h1>
+<div class="app-container bg-white rounded-lg shadow-lg mt-10 animate-fade-in p-10">
+    <header class="text-center py-8">
+        <h1 class="text-4xl font-semibold text-blue-800 mb-2">Protein Dance</h1>
+        <p class="text-gray-600 text-lg">基于 DeepSeek 的蛋白质预测智能体</p>
+    </header>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flash-list">
+    {% if messages %}
+    <ul class="space-y-3 mb-6">
         {% for category, msg in messages %}
-          <li class="flash {{ category }}">{{ msg }}</li>
+        <li
+                class="
+          p-4 rounded
+          {{
+            'bg-red-100 text-red-800 border border-red-200'
+            if category == 'error'
+            else
+            'bg-yellow-100 text-yellow-800 border border-yellow-200'
+            if category == 'warning'
+            else
+            'bg-green-100 text-green-800 border border-green-200'
+          }}
+        "
+        >
+            {{ msg }}
+        </li>
         {% endfor %}
-        </ul>
-      {% endif %}
+    </ul>
+    {% endif %}
     {% endwith %}
-    <form action="/" method="post" class="form">
-      <input type="text" name="disease" placeholder="输入疾病名称（中文）" required class="input">
-      <button type="submit" class="btn">提交</button>
+
+    <form action="/" method="post"
+          class="flex flex-col sm:flex-row items-center gap-4 mb-8"
+          onsubmit="document.getElementById('spinner').classList.remove('hidden')">
+        <input type="text" name="disease"
+               placeholder="输入疾病名称（中文）"
+               required
+               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg
+                    focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
+        <button type="submit" class="btn flex items-center justify-center">
+            <span>提交</span>
+            <svg id="spinner" class="spinner ml-2 hidden" xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                        stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+        </button>
     </form>
-  </div>
+</div>
 </body>
 </html>

@@ -1,27 +1,53 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UniProt 条目</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniProt 匹配结果</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
-  <div class="container">
-    <h2 class="subtitle">UniProt 匹配结果</h2>
-    <form action="{{ url_for('result') }}" method="post">
-      <ul class="list">
-        {% for c in candidates %}
-          <li class="list-item">
-            <label>
-              <input type="radio" name="accession" value="{{ c.accession }}" required>
-              <span>{{ c.entry_name }} ({{ c.accession }}) — {{ c.protein_name }}</span>
+<div class="mx-auto w-full max-w-6xl px-6 py-10 bg-white rounded-lg shadow-lg mt-8 animate-fade-in">
+    <h2 class="text-3xl font-semibold text-blue-800 text-center mb-8">
+        UniProt 匹配结果
+    </h2>
+
+    <form action="{{ url_for('result') }}" method="post"
+          onsubmit="this.querySelector('button .spinner').classList.remove('hidden')">
+        <fieldset class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for c in candidates %}
+            <label class="flex items-start p-4 border border-gray-200 rounded-lg
+                       hover:shadow-md cursor-pointer transition">
+                <input type="radio"
+                       name="accession"
+                       value="{{ c.accession }}"
+                       required
+                       class="form-radio text-blue-600 focus:ring-blue-500 mt-1 mr-3"/>
+                <div class="flex-1">
+                    <p class="font-medium text-gray-800">
+                        {{ c.entry_name }} ({{ c.accession }})
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        {{ c.protein_name }}
+                    </p>
+                </div>
             </label>
-          </li>
-        {% endfor %}
-      </ul>
-      <button type="submit" class="btn">查看结果</button>
+            {% endfor %}
+        </fieldset>
+
+        <div class="text-center mt-10">
+            <button type="submit" class="btn inline-flex items-center">
+                <span>查看结果</span>
+                <svg class="spinner ml-2 hidden" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24" width="20" height="20">
+                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+            </button>
+        </div>
     </form>
-  </div>
+</div>
 </body>
 </html>

@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 from dotenv import load_dotenv
-
 import services
+
 from services import (
     initialize_deepseek_client,
     get_target_proteins,
@@ -67,18 +67,62 @@ def candidates():
 @app.route('/result', methods=['POST'])
 def result():
     accession = request.form.get('accession')
-    entry_name = request.form.get('entry_name')
-    if not accession:
-        flash('请选择一个条目。', 'error')
-        return redirect(url_for('index'))
+    entry_name = request.form.get('entry_name')  # Passed from previous step
 
+    if not accession:
+        flash('请提供一个 UniProt Accession。', 'error')
+        return redirect(url_for('index'))  # Assuming 'index' is your search/home page
+
+    # Fetch FASTA sequence
     fasta = fetch_fasta(accession)
     if not fasta:
-        flash('无法获取 FASTA 序列。', 'error')
-        return redirect(url_for('index'))
+        flash(f'未能获取 {accession} 的 FASTA 序列。', 'warning')
+        fasta = "无法获取 FASTA 序列。"  # Placeholder text
 
-    pdb_urls = predict_structure(accession)
-    return render_template('result.html', entry_name=entry_name, accession=accession, fasta=fasta, pdb_urls=pdb_urls[0])
+    # Get AlphaFold predictions and convert generator/iterable to list
+    prediction_list = []
+    try:
+        # Call the function and immediately convert its result (generator/iterable) to a list
+        raw_predictions = services.predict_structure(accession)
+        prediction_list = list(raw_predictions)  # Convert generator to list here!
+
+        for i, pred in enumerate(raw_predictions, start=1):
+            print(f"--- Prediction #{i} ---")
+            for key, value in pred.items():
+                print(f"{key!r}: {value!r}")
+
+        print(prediction_list)
+        # Now you can safely check the length for debugging/logging
+        print(f"Retrieved {len(prediction_list)} predictions for {accession}")
+
+    except Exception as e:
+        print(f"Error retrieving AlphaFold predictions for {accession}: {e}")
+        flash(f'获取 AlphaFold 预测时出错: {e}', 'error')
+        # Keep prediction_list as empty, prediction_data will be None
+
+    # Determine the actual data to pass to the template (the first prediction dict or None)
+    prediction_data = None
+    if prediction_list:
+        # If the list is not empty, take the first prediction dictionary
+        prediction_data = prediction_list[0]
+    else:
+        # If the list is empty (either from API or after an error), flash a warning
+        # only if FASTA was successfully fetched.
+        if fasta != "无法获取 FASTA 序列。":
+            flash(f'未能找到 {accession} 的 AlphaFold 预测。', 'warning')
+
+    # Make entry_name more robust if not provided
+    if not entry_name:
+        entry_name = f"UniProt {accession}"  # Default name
+
+    # Pass the prediction dictionary (or None) to the template, NOT the list
+    return render_template(
+        'result.html',
+        entry_name=entry_name,
+        accession=accession,
+        fasta=fasta,
+        prediction_data=prediction_data  # Pass the single dictionary or None
+    )
 
 
 if __name__ == '__main__':
