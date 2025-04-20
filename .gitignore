@@ -1,0 +1,36 @@
+# =====================
+# Python 常规
+# =====================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+env/               # 如果你的虚拟环境放在项目里
+venv/
+
+# =====================
+# Node / React 前端
+# =====================
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# =====================
+# JetBrains IDE (PyCharm/WebStorm…) 
+# =====================
+.idea/
+*.iml
+
+# =====================
+# VSCode
+# =====================
+.vscode/
+
+# =====================
+# macOS 文件
+# =====================
+.DS_Store
+
