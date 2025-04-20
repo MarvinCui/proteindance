@@ -9,8 +9,16 @@
 <body>
 <div class="app-container bg-white rounded-lg shadow-lg mt-10 animate-fade-in p-10">
     <header class="text-center py-8">
-        <h1 class="text-4xl font-semibold text-blue-800 mb-2">Protein Dance</h1>
-        <p class="text-gray-600 text-lg">基于 DeepSeek 的蛋白质预测智能体</p>
+
+        <div class="flex items-center justify-center space-x-4">
+             <img src="{{ url_for('static', filename='logo.png') }}"
+                   alt="ProteinDance Logo"
+                   class="h-16 w-16"/>
+            <div class="text-left">
+                <h1 class="text-4xl font-semibold text-blue-800">Protein Dance</h1>
+                <p class="text-gray-600 text-lg">基于 DeepSeek 的蛋白质预测智能体</p>
+            </div>
+        </div>
     </header>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -42,7 +50,7 @@
           class="flex flex-col sm:flex-row items-center gap-4 mb-8"
           onsubmit="document.getElementById('spinner').classList.remove('hidden')">
         <input type="text" name="disease"
-               placeholder="输入疾病名称（中文）"
+               placeholder="输入疾病名称"
                required
                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg
                     focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
