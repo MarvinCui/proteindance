@@ -16,37 +16,32 @@
     </p>
 
     <form action="{{ url_for('candidates') }}" method="post">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {% for prot in proteins %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in proteins %}
             <button
                     type="submit"
                     name="keyword"
-                    value="{{ prot }}"
-                    class="btn flex items-center justify-center"
+                    value="{{ item.protein }}"
+                    class="flex flex-col items-start p-6 bg-white border border-gray-200 hover:border-blue-400 transition rounded-lg shadow-sm"
                     onclick="this.querySelector('.spinner').classList.remove('hidden')"
             >
-                <span>{{ prot }}</span>
-                <svg
-                        class="spinner ml-2 hidden"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                >
-                    <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                    ></circle>
-                    <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z"
-                    ></path>
-                </svg>
+                <div class="flex items-center w-full justify-between">
+                    <span class="text-lg font-bold text-blue-800">{{ item.protein }}</span>
+                    <svg
+                            class="spinner w-5 h-5 text-blue-800 hidden"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                    >
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                </div>
+                <p class="mt-2 text-sm text-gray-700">
+                    {{ item.description }}
+                </p>
             </button>
+
             {% endfor %}
         </div>
     </form>

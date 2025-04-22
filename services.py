@@ -3,9 +3,11 @@ import json
 import requests
 from requests.exceptions import HTTPError
 from dotenv import load_dotenv
-from openai import OpenAI
+# from openai import OpenAI
+import openai
 from Bio.PDB.alphafold_db import get_predictions
 import re
+import time
 
 UNIPROT_BASE = "https://rest.uniprot.org/uniprotkb"
 DS_MODEL_NAME = os.getenv('DS_MODEL_NAME', 'deepseek-chat')
@@ -28,7 +30,7 @@ def initialize_deepseek_client(key):
     if not key:
         return None
     try:
-        client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
+        client = openai.OpenAI(api_key=key, base_url="https://api.deepseek.com")
         return client
     except Exception:
         print(Exception)
@@ -59,32 +61,37 @@ def call_ai(client, model_name, prompt):
 def get_target_proteins(client, model_name, disease):
     """
     Given a DeepSeek client, model, and disease name (中文),
-    returns a list of 5 UniProt keywords (strings) or empty list.
+    returns a list of dicts: {"protein": UniProt关键词, "description": 解释}
     """
     prompt = (
-        f'''请以 JSON 数组形式，仅返回导致疾病“{disease}”的5个潜在靶点蛋白关键词（英文，可用于UniProt查询），不要其他文字。如["SLC6A4", "MAOA", "HTR2A", "COMT", "BDNF"]'''
+        f'''请以 JSON 数组形式，仅返回导致疾病“{disease}”的6个潜在靶点蛋白关键词及其作为target的通俗学术解释，'''
+        '''格式如下：
+        [
+          {
+            "protein": "SLC6A4",
+            "description": "Serotonin transporter, 在神经递质再摄取中起关键作用"
+          },
+          ...
+        ]
+        不要输出任何与 JSON 无关的文字。'''
     )
     raw = call_ai(client, model_name, prompt)
     if not raw:
         return []
 
-    # 用正则提取最外层的 [...] 部分
+    # 提取最外层的 [...] 部分
     match = re.search(r'\[.*\]', raw, re.S)
     if not match:
         print("未能在返回中找到 JSON 数组")
         return []
 
-    json_str = match.group(0)
-
     try:
-        arr = json.loads(json_str)
-        if isinstance(arr, list) and all(isinstance(x, str) for x in arr):
-            return arr
-        else:
-            print("解析后不是字符串列表：", arr)
-    except json.JSONDecodeError as e:
-        print("JSON 解码失败：", e)
-
+        data = json.loads(match.group(0))
+        # 检查格式
+        if isinstance(data, list) and all("protein" in p and "description" in p for p in data):
+            return data
+    except json.JSONDecodeError:
+        print("JSON 解析失败:", match.group(0))
     return []
 
 
@@ -147,7 +154,32 @@ def predict_structure(accession):
     except Exception as e:
         print("Error retrieving predictions:", e)
         return []
-
-
-
     return preds
+
+# def run_dogsite_api(pdb_path: Path) -> List[Dict]:
+#     """
+#     调 ProteinsPlus REST，返回 [{'center': (x,y,z), 'score': druggability}, ...]
+#     文档: https://proteins.plus/api/v2/docs
+#     """
+#     print("ProteinsPlus DoGSiteScorer 在线口袋预测")
+#     url_job = "https://proteins.plus/api/v2/dogsite/start/"
+#     files = {"file": open(pdb_path, "rb")}
+#     r = requests.post(url_job, files=files, timeout=60)
+#     r.raise_for_status()
+#     job_id = r.json()["job_id"]
+#
+#     # 轮询
+#     url_stat = f"https://proteins.plus/api/v2/dogsite/status/{job_id}/"
+#     url_res = f"https://proteins.plus/api/v2/dogsite/result/{job_id}/"
+#     for _ in range(60):
+#         time.sleep(5)
+#         if requests.get(url_stat).json()["status"] == "FINISHED":
+#             data = requests.get(url_res).json()
+#             pockets = []
+#             for p in data["pockets"]:
+#                 x, y, z = p["center"]
+#                 pockets.append({"center": (x, y, z),
+#                                 "score": p["druggability_score"]})
+#             # 分数高→更可成药；排序后返回
+#             return sorted(pockets, key=lambda x: x["score"], reverse=True)
+#     raise RuntimeError("DoGSite 预测超时")
