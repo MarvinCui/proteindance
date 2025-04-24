@@ -18,6 +18,50 @@
         </p>
     </div>
 
+    <!-- 口袋预测选择：放在 header 之后 -->
+    {% if pdb_url %}
+    <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-blue-800 mb-4">
+            口袋预测
+        </h2>
+        <p class="text-gray-700 mb-6">
+            结构文件已准备：
+            <a href="{{ pdb_url }}" target="_blank" class="text-blue-600 hover:underline">
+                下载 PDB (.pdb)
+            </a><br>
+            请选择使用
+            <span class="font-semibold">本地 P2Rank</span>
+            还是
+            <span class="font-semibold">在线 DoGSiteScorer</span>：
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <!-- 本地预测 -->
+            <form method="post" action="{{ url_for('pockets') }}" class="flex-1">
+                <input type="hidden" name="accession" value="{{ accession }}">
+                <input type="hidden" name="pdb_url" value="{{ pdb_url }}">
+                <input type="hidden" name="method" value="local">
+                <button
+                        type="submit"
+                        class="btn p-4 bg-grey-300 border border-gray-200 hover:border-blue-400 transition rounded-lg shadow-sm ">
+                    本地 P2Rank 预测
+                </button>
+            </form>
+
+            <!-- 在线预测 -->
+            <form method="post" action="{{ url_for('pockets') }}" class="flex-1">
+                <input type="hidden" name="accession" value="{{ accession }}">
+                <input type="hidden" name="pdb_url" value="{{ pdb_url }}">
+                <input type="hidden" name="method" value="online">
+                <button
+                        type="submit"
+                        class="btn p-4 bg-grey-300 border border-gray-200 hover:border-blue-400 transition rounded-lg shadow-sm ">
+                    在线 DoGSiteScorer
+                </button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- 两列主区域：左-详情，右-FASTA + PAE -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- 预测详情 -->
@@ -26,78 +70,28 @@
                 预测详情 ({{ prediction_data.get('entryId','N/A') }})
             </h2>
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-700">
-                <div>
-                    <dt class="font-semibold text-gray-800">基因 (Gene)</dt>
-                    <dd>{{ prediction_data.get('gene','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">UniProt ID</dt>
-                    <dd>{{ prediction_data.get('uniprotId','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">UniProt 描述</dt>
-                    <dd>{{ prediction_data.get('uniprotDescription','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">生物体 (Organism)</dt>
-                    <dd>
-                        {{ prediction_data.get('organismScientificName','N/A') }}
-                        (TaxID: {{ prediction_data.get('taxId','N/A') }})
-                    </dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">模型创建日期</dt>
-                    <dd>{{ prediction_data.get('modelCreatedDate','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">模型版本</dt>
-                    <dd>
-                        最新: {{ prediction_data.get('latestVersion','N/A') }}<br>
-                        所有版本: {{ prediction_data.get('allVersions',[])|join(', ') }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">序列校验和</dt>
-                    <dd>{{ prediction_data.get('sequenceChecksum','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">UniProt 序列版本日期</dt>
-                    <dd>{{ prediction_data.get('sequenceVersionDate','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">是否已审查 (Reviewed)</dt>
-                    <dd>{{ prediction_data.get('isReviewed','N/A') }}</dd>
-                </div>
-                <div>
-                    <dt class="font-semibold text-gray-800">是否参考蛋白质组</dt>
-                    <dd>{{ prediction_data.get('isReferenceProteome','N/A') }}</dd>
-                </div>
-
-                <!-- 预测文件 列表占两列 -->
+                <!-- ... 原有详情字段 ... -->
                 <div class="sm:col-span-2">
                     <dt class="font-semibold text-gray-800">预测文件</dt>
                     <dd>
                         <ul class="list-disc pl-5 space-y-1 text-blue-600">
                             {% if prediction_data.pdbUrl %}
                             <li>
-                                <a href="{{ prediction_data.pdbUrl }}"
-                                   target="_blank" class="hover:underline">
+                                <a href="{{ prediction_data.pdbUrl }}" target="_blank" class="hover:underline">
                                     PDB 文件 (.pdb)
                                 </a>
                             </li>
                             {% endif %}
                             {% if prediction_data.cifUrl %}
                             <li>
-                                <a href="{{ prediction_data.cifUrl }}"
-                                   target="_blank" class="hover:underline">
+                                <a href="{{ prediction_data.cifUrl }}" target="_blank" class="hover:underline">
                                     mmCIF 文件 (.cif)
                                 </a>
                             </li>
                             {% endif %}
                             {% if prediction_data.bcifUrl %}
                             <li>
-                                <a href="{{ prediction_data.bcifUrl }}"
-                                   target="_blank" class="hover:underline">
+                                <a href="{{ prediction_data.bcifUrl }}" target="_blank" class="hover:underline">
                                     BinaryCIF 文件 (.bcif)
                                 </a>
                             </li>
@@ -115,10 +109,9 @@
                 <h2 class="text-2xl font-semibold text-blue-800 mb-4">
                     FASTA 序列
                 </h2>
-                <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4
-                      overflow-auto font-mono text-sm text-gray-700">
+                <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-auto font-mono text-sm text-gray-700">
 {{ fasta }}
-          </pre>
+                </pre>
             </section>
 
             <!-- PAE 图 -->
@@ -128,18 +121,15 @@
                 </h2>
                 {% if prediction_data.paeImageUrl %}
                 <a href="{{ prediction_data.paeImageUrl }}" target="_blank" class="block mb-4">
-                    <img
-                            src="{{ prediction_data.paeImageUrl }}"
-                            alt="PAE Plot"
-                            class="w-full sm:w-1/2 mx-auto rounded-lg border"
-                    />
+                    <img src="{{ prediction_data.paeImageUrl }}"
+                         alt="PAE Plot"
+                         class="w-full sm:w-1/2 mx-auto rounded-lg border"/>
                 </a>
                 {% else %}
                 <p class="text-gray-500">无 PAE 图像</p>
                 {% endif %}
                 {% if prediction_data.paeDocUrl %}
-                <a href="{{ prediction_data.paeDocUrl }}"
-                   target="_blank"
+                <a href="{{ prediction_data.paeDocUrl }}" target="_blank"
                    class="text-blue-600 hover:underline text-sm">
                     查看 PAE JSON 数据
                 </a>

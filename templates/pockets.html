@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>口袋预测结果 - {{ accession }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+</head>
+<body>
+<div class="mx-auto w-full max-w-7xl px-8 py-10 animate-fade-in">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h1 class="text-4xl font-semibold text-blue-800 mb-2">
+            口袋预测结果
+        </h1>
+        <p class="text-gray-600 text-lg">
+            Accession: {{ accession }}；方法: {{ '本地 P2Rank' if method=='local' else '在线 DoGSite' }}
+        </p>
+    </div>
+
+    <!-- Pockets List -->
+    <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-blue-800 mb-4">预测口袋列表</h2>
+        <ul class="list-disc pl-5 text-gray-700 space-y-2">
+            {% for p in pockets %}
+            <li>
+                中心: ({{ '%.2f'|format(p.center[0]) }}, {{ '%.2f'|format(p.center[1]) }}, {{ '%.2f'|format(p.center[2])
+                }}) — 分数: {{ '%.3f'|format(p.score) }}
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- Navigation Buttons -->
+    <div class="text-center mt-10 space-x-4">
+        <a href="{{ url_for('result') }}?accession={{ accession }}" class="btn-secondary">返回结构</a>
+        <a href="{{ url_for('index') }}" class="btn-secondary">返回搜索</a>
+    </div>
+</div>
+</body>
+</html>

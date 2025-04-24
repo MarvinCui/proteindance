@@ -2,6 +2,27 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 from dotenv import load_dotenv
 import services
+from services import (
+    initialize_deepseek_client,
+    get_target_proteins,
+    search_uniprot,
+    fetch_fasta,
+    predict_structure,
+    run_p2rank,
+    run_dogsite_api,
+)
+from pathlib import Path
+import requests
+
+# Load environment and Flask setup
+load_dotenv()
+app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'replace-with-secure-random')
+DS_MODEL_NAME = os.getenv('DS_MODEL_NAME', 'deepseek-chat')
+
+# Temporary directory for PDB downloads and local P2Rank output
+TMP_DIR = Path('tmp')
+TMP_DIR.mkdir(exist_ok=True)
 
 from services import (
     initialize_deepseek_client,
@@ -115,13 +136,61 @@ def result():
     if not entry_name:
         entry_name = f"UniProt {accession}"  # Default name
 
+    pdb_url = None
+    if prediction_data and prediction_data.get('pdbUrl'):
+        pdb_url = prediction_data['pdbUrl']
+
     # Pass the prediction dictionary (or None) to the template, NOT the list
     return render_template(
         'result.html',
         entry_name=entry_name,
         accession=accession,
         fasta=fasta,
-        prediction_data=prediction_data  # Pass the single dictionary or None
+        prediction_data=prediction_data,  # Pass the single dictionary or None
+        pdb_url=pdb_url,  # <- 新增这一行
+    )
+
+    TMP_DIR = Path('tmp')
+    TMP_DIR.mkdir(exist_ok=True)
+
+
+@app.route('/pockets', methods=['POST'])
+def pockets():
+    accession = request.form.get('accession')
+    method = request.form.get('method')  # expects 'local' or 'online'
+    pdb_url = request.form.get('pdb_url')
+
+    if not accession or not method or not pdb_url:
+        flash('缺少参数，请重试。', 'error')
+        return redirect(url_for('index'))
+
+    # Download the PDB file to TMP_DIR
+    try:
+        resp = requests.get(pdb_url, timeout=20)
+        resp.raise_for_status()
+    except Exception as e:
+        flash(f'下载结构文件失败: {e}', 'error')
+        return redirect(url_for('result'))
+
+    pdb_path = TMP_DIR / f"{accession}.pdb"
+    with open(pdb_path, 'wb') as f:
+        f.write(resp.content)
+
+    # Run pocket prediction
+    try:
+        if method == 'local':
+            pockets = run_p2rank(pdb_path)
+        else:
+            pockets = run_dogsite_api(pdb_path)
+    except Exception as e:
+        flash(f'口袋预测失败: {e}', 'error')
+        return redirect(url_for('result'))
+
+    return render_template(
+        'pockets.html',
+        accession=accession,
+        pockets=pockets,
+        method=method
     )
 
 

@@ -1,0 +1,38 @@
+[INFO] Console - predicting pockets for proteins from dataset [P06332.pdb]
+[INFO] PredictPocketsRoutine - outdir: tmp/P06332_p2rank
+[INFO] Model - Loading model from directory (v3 format): /Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/DNADancer/ProteinDance/p2rank/models/default
+[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, bfactor, atom_table]
+[INFO] Dataset - processing dataset [P06332.pdb] using 0 threads
+[INFO] Dataset - 
+------------------------------------------------------------------------------------------------------------------------
+processing [P06332.pdb] (1/1)
+------------------------------------------------------------------------------------------------------------------------
+
+[INFO] Console - processing [P06332.pdb] (1/1)
+[INFO] Protein - loading protein [/Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/DNADancer/ProteinDance/tmp/P06332.pdb]
+[INFO] PdbUtils - loading file [tmp/P06332.pdb]
+[INFO] Struct - all groups in chain A: 457
+[INFO] Struct - all groups in chain A: 457
+[INFO] Struct - 457 groups in chain A
+[INFO] Protein - structure atoms: 3594
+[INFO] Protein - protein   atoms: 3547
+[INFO] Protein - ignoring ligands
+[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, bfactor, atom_table]
+[INFO] Protein - SAS points: 9727
+[INFO] Protein - exposed protein atoms: 2619 of 3547
+[INFO] SLinkClusterer - clustering [15] elements
+[INFO] SLinkClusterer - clusters: [id:1( 3 ), id:6( 5 ), id:12( 1 ), id:13( 5 ), id:14( 1 )]
+[INFO] SLinkClusterer - clusters together: 15 / 15
+[INFO] PocketPredictor - PREDICTING POCKETS.... ====================================
+[INFO] PocketPredictor - SAS POINTS: 9727
+[INFO] PocketPredictor - LIGANDABLE POINTS: 15
+[INFO] PocketPredictor - CLUSTERS: 5
+[INFO] PocketPredictor - FILTERED CLUSTERS: 3
+[INFO] PocketPredictor - pocket 1 -  surf_atoms:  19   points:   5   score:    1.6
+[INFO] PocketPredictor - pocket 2 -  surf_atoms:  11   points:   5   score:    1.4
+[INFO] PocketPredictor - pocket 3 -  surf_atoms:  17   points:   3   score:    0.9
+[INFO] PredictionVisualizer - copying [/Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/DNADancer/ProteinDance/tmp/P06332.pdb] to [tmp/P06332_p2rank/visualizations/data/P06332.pdb]
+[INFO] Console - predicting pockets finished in 0 hours 0 minutes 1.189 seconds
+[INFO] Console - results saved to directory [/Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/DNADancer/ProteinDance/tmp/P06332_p2rank]
+[INFO] Console - 
+[INFO] Console - Finished successfully in 0 hours 0 minutes 1.587 seconds.
