@@ -87,6 +87,8 @@ def candidates():
 
 @app.route('/result', methods=['POST'])
 def result():
+    prediction_data = None
+
     accession = request.form.get('accession')
     entry_name = request.form.get('entry_name')  # Passed from previous step
 
@@ -112,7 +114,7 @@ def result():
             for key, value in pred.items():
                 print(f"{key!r}: {value!r}")
 
-        print(prediction_list)
+        print("list" + prediction_list)
         # Now you can safely check the length for debugging/logging
         print(f"Retrieved {len(prediction_list)} predictions for {accession}")
 
@@ -122,7 +124,6 @@ def result():
         # Keep prediction_list as empty, prediction_data will be None
 
     # Determine the actual data to pass to the template (the first prediction dict or None)
-    prediction_data = None
     if prediction_list:
         # If the list is not empty, take the first prediction dictionary
         prediction_data = prediction_list[0]

@@ -1,4 +1,4 @@
-#!/Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/DNADancer/ProteinDance/env/bin/python3.9
+#!/Users/wenzhenxiong/Library/CloudStorage/OneDrive-Microsoft365/学校/DNADancer/ProteinDance/env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
