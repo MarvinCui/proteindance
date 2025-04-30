@@ -1,0 +1,249 @@
+2025-04-30 14:18:25,917 - drug_discovery - INFO - ========== AI驱动的疾病→药物靶点工作流 ==========
+2025-04-30 14:18:28,177 - drug_discovery - INFO - ========== 调用 DeepSeek 获取蛋白列表 ==========
+2025-04-30 14:18:36,080 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:18:39,252 - drug_discovery - INFO - ========== 查询 UniProt Accession ==========
+2025-04-30 14:18:44,253 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:18:46,692 - drug_discovery - INFO - ========== 结构来源选择 ==========
+2025-04-30 14:18:47,828 - drug_discovery - INFO - ========== 口袋预测 ==========
+2025-04-30 14:18:47,828 - drug_discovery - INFO - ========== P2Rank 口袋预测 ==========
+2025-04-30 14:18:54,299 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:18:55,507 - drug_discovery - INFO - ========== 候选配体准备 ==========
+2025-04-30 14:18:58,663 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:18:58,663 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:18:58,663 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:18:58,663 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:18:58,667 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:18:58,667 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:18:58,670 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:18:58,670 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:18:58,670 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:18:59,485 - drug_discovery - INFO - ========== 数据准备完成 ==========
+2025-04-30 14:19:15,268 - drug_discovery - INFO - ========== AI科学分析 ==========
+2025-04-30 14:28:28,170 - drug_discovery - INFO - ========== AI全自动疾病→药物靶点工作流 ==========
+2025-04-30 14:28:36,385 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:28:36,386 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 14:28:38,376 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:28:38,377 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 14:28:39,121 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 14:28:39,121 - drug_discovery - INFO - ========== P2Rank 口袋预测 ==========
+2025-04-30 14:28:42,923 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:28:42,924 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 14:28:42,940 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:28:42,940 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:28:42,940 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:28:42,940 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:28:42,944 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:28:42,944 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:28:42,946 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:28:42,946 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:28:42,946 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:28:42,994 - drug_discovery - INFO - 已保存配体1的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_1.sdf
+2025-04-30 14:28:43,557 - drug_discovery - INFO - 已保存配体2的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_2.sdf
+2025-04-30 14:28:43,589 - drug_discovery - INFO - 已保存配体3的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_3.sdf
+2025-04-30 14:28:43,615 - drug_discovery - INFO - 已保存配体4的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_4.sdf
+2025-04-30 14:28:43,660 - drug_discovery - INFO - 已保存配体5的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_5.sdf
+2025-04-30 14:28:43,695 - drug_discovery - INFO - 已保存配体6的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_6.sdf
+2025-04-30 14:28:43,714 - drug_discovery - INFO - 已保存配体7的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_7.sdf
+2025-04-30 14:28:43,766 - drug_discovery - INFO - 已保存配体8的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_8.sdf
+2025-04-30 14:29:02,455 - drug_discovery - INFO - ========== 数据准备完成 ==========
+2025-04-30 14:29:02,456 - drug_discovery - INFO - ========== AI科学分析 ==========
+2025-04-30 14:29:23,336 - drug_discovery - INFO - ========== AI全自动疾病→药物靶点工作流 ==========
+2025-04-30 14:29:31,002 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:29:31,002 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 14:29:33,305 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:29:33,305 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 14:29:34,078 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 14:29:34,079 - drug_discovery - INFO - ========== P2Rank 口袋预测 ==========
+2025-04-30 14:29:39,013 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:29:39,013 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 14:29:39,029 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:29:39,029 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:29:39,029 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:29:39,029 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:29:39,032 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:29:39,032 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:29:39,035 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:29:39,035 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:29:39,035 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:29:39,082 - drug_discovery - INFO - 已保存配体1的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_1.sdf
+2025-04-30 14:29:39,651 - drug_discovery - INFO - 已保存配体2的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_2.sdf
+2025-04-30 14:29:39,683 - drug_discovery - INFO - 已保存配体3的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_3.sdf
+2025-04-30 14:29:39,710 - drug_discovery - INFO - 已保存配体4的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_4.sdf
+2025-04-30 14:29:39,756 - drug_discovery - INFO - 已保存配体5的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_5.sdf
+2025-04-30 14:29:39,791 - drug_discovery - INFO - 已保存配体6的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_6.sdf
+2025-04-30 14:29:39,812 - drug_discovery - INFO - 已保存配体7的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_7.sdf
+2025-04-30 14:29:39,863 - drug_discovery - INFO - 已保存配体8的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_8.sdf
+2025-04-30 14:29:56,107 - drug_discovery - INFO - ========== 数据准备完成 ==========
+2025-04-30 14:29:56,107 - drug_discovery - INFO - ========== AI科学分析 ==========
+2025-04-30 14:39:52,644 - drug_discovery - INFO - ========== AI全自动疾病→药物靶点工作流 ==========
+2025-04-30 14:40:00,078 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:40:00,078 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 14:40:04,197 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:40:04,199 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 14:40:04,996 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 14:40:04,996 - drug_discovery - INFO - ========== P2Rank 口袋预测 ==========
+2025-04-30 14:40:10,224 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:40:10,224 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 14:40:10,249 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:40:10,249 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:40:10,249 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:40:10,249 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:40:10,253 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:40:10,253 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:40:10,256 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:40:10,256 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:40:10,256 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:40:10,305 - drug_discovery - INFO - 已保存配体1的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_1.sdf
+2025-04-30 14:40:10,858 - drug_discovery - INFO - 已保存配体2的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_2.sdf
+2025-04-30 14:40:10,890 - drug_discovery - INFO - 已保存配体3的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_3.sdf
+2025-04-30 14:40:10,916 - drug_discovery - INFO - 已保存配体4的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_4.sdf
+2025-04-30 14:40:10,961 - drug_discovery - INFO - 已保存配体5的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_5.sdf
+2025-04-30 14:40:10,996 - drug_discovery - INFO - 已保存配体6的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_6.sdf
+2025-04-30 14:40:11,015 - drug_discovery - INFO - 已保存配体7的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_7.sdf
+2025-04-30 14:40:11,067 - drug_discovery - INFO - 已保存配体8的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_8.sdf
+2025-04-30 14:40:27,939 - drug_discovery - INFO - ========== 数据准备完成 ==========
+2025-04-30 14:40:27,940 - drug_discovery - INFO - ========== AI科学分析 ==========
+2025-04-30 14:40:51,847 - drug_discovery - INFO - ========== AI全自动疾病→药物靶点工作流 ==========
+2025-04-30 14:41:02,037 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:41:02,038 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 14:41:07,510 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:41:07,510 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 14:41:08,339 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 14:41:08,339 - drug_discovery - INFO - ========== P2Rank 口袋预测 ==========
+2025-04-30 14:41:14,032 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:41:14,033 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 14:41:14,047 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:41:14,047 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:41:14,047 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:41:14,047 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:41:14,051 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:41:14,051 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:41:14,053 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:41:14,053 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:41:14,053 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:41:14,098 - drug_discovery - INFO - 已保存配体1的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_1.sdf
+2025-04-30 14:41:14,663 - drug_discovery - INFO - 已保存配体2的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_2.sdf
+2025-04-30 14:41:14,695 - drug_discovery - INFO - 已保存配体3的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_3.sdf
+2025-04-30 14:41:14,721 - drug_discovery - INFO - 已保存配体4的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_4.sdf
+2025-04-30 14:41:14,767 - drug_discovery - INFO - 已保存配体5的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_5.sdf
+2025-04-30 14:41:14,802 - drug_discovery - INFO - 已保存配体6的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_6.sdf
+2025-04-30 14:41:14,821 - drug_discovery - INFO - 已保存配体7的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_7.sdf
+2025-04-30 14:41:14,874 - drug_discovery - INFO - 已保存配体8的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_8.sdf
+2025-04-30 14:41:30,653 - drug_discovery - INFO - ========== 数据准备完成 ==========
+2025-04-30 14:41:30,653 - drug_discovery - INFO - ========== AI科学分析 ==========
+2025-04-30 14:56:34,565 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 14:56:41,790 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 14:56:54,321 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 14:56:54,322 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 14:56:55,633 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 14:57:09,093 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 14:57:09,094 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 14:57:18,817 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 14:57:18,817 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:57:18,817 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:57:18,817 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 14:57:20,898 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 14:57:20,898 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 14:57:20,901 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 14:57:20,901 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 14:57:20,901 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 14:57:20,952 - drug_discovery - INFO - 已保存配体1的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_1.sdf
+2025-04-30 14:57:21,511 - drug_discovery - INFO - 已保存配体2的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_2.sdf
+2025-04-30 14:57:21,542 - drug_discovery - INFO - 已保存配体3的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_3.sdf
+2025-04-30 14:57:21,568 - drug_discovery - INFO - 已保存配体4的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_4.sdf
+2025-04-30 14:57:21,613 - drug_discovery - INFO - 已保存配体5的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_5.sdf
+2025-04-30 14:57:21,647 - drug_discovery - INFO - 已保存配体6的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_6.sdf
+2025-04-30 14:57:21,666 - drug_discovery - INFO - 已保存配体7的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_7.sdf
+2025-04-30 14:57:21,717 - drug_discovery - INFO - 已保存配体8的SDF文件: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/ligand_8.sdf
+2025-04-30 15:20:32,126 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 15:20:38,853 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 15:20:50,389 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 15:20:50,390 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 15:20:51,228 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 15:21:04,716 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 15:21:04,717 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 15:21:13,136 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 15:21:13,137 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:21:13,137 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:21:13,137 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 15:21:15,202 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 15:21:15,203 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 15:21:15,208 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 15:21:15,208 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:21:15,208 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:21:37,074 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-04-30 15:21:37,078 - drug_discovery - ERROR - 生成分子结构图失败: module 'rdkit.Chem.Draw' has no attribute 'DrawingOptions'
+2025-04-30 15:21:37,115 - drug_discovery - ERROR - 生成对接可视化失败: Must instantiate viewer before generating image.
+2025-04-30 15:27:42,434 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 15:27:50,467 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 15:28:02,953 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 15:28:02,954 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 15:28:03,316 - drug_discovery - ERROR - AlphaFold下载失败 (尝试 1/3): HTTPSConnectionPool(host='alphafold.ebi.ac.uk', port=443): Max retries exceeded with url: /files/AF-P31645-F1-model_v4.pdb (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1129)')))
+2025-04-30 15:28:06,055 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 15:28:20,531 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 15:28:20,532 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 15:28:29,740 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 15:28:29,740 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:28:29,740 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:28:29,740 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 15:28:31,809 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 15:28:31,809 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 15:28:31,812 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 15:28:31,812 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:28:31,812 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:28:51,687 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-04-30 15:34:35,791 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-04-30 15:35:03,260 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 15:35:12,109 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 15:35:23,535 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 15:35:23,536 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 15:35:24,263 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 15:35:38,215 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 15:35:38,218 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 15:35:47,252 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 15:35:47,252 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:35:47,252 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:35:47,252 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 15:35:49,327 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 15:35:49,327 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 15:35:49,335 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 15:35:49,335 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:35:49,335 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:36:12,474 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-04-30 15:36:12,549 - drug_discovery - ERROR - 生成对接可视化失败: Must instantiate viewer before generating image.
+2025-04-30 15:37:35,128 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 15:37:47,306 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 15:38:01,049 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 15:38:01,050 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 15:38:01,814 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 15:38:15,359 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 15:38:15,359 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 15:38:27,394 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 15:38:27,394 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:38:27,394 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:38:27,394 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 15:38:29,499 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 15:38:29,499 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 15:38:29,501 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 15:38:29,501 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:38:29,501 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:38:50,457 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-04-30 15:38:50,505 - drug_discovery - ERROR - 生成对接可视化失败: Must instantiate viewer before generating image.
+2025-04-30 15:40:38,549 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-04-30 15:40:46,704 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-04-30 15:40:58,715 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-04-30 15:40:58,715 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-04-30 15:40:59,602 - drug_discovery - INFO - 结构文件已下载: /var/folders/tf/t4zhdbpn7gn723w18fsybzs40000gn/T/drug_flow/P31645_AF.pdb
+2025-04-30 15:41:12,379 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-04-30 15:41:12,380 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-04-30 15:41:22,792 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-04-30 15:41:22,792 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:41:22,793 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:41:22,793 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-04-30 15:41:24,862 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-04-30 15:41:24,862 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-04-30 15:41:24,869 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-04-30 15:41:24,869 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-04-30 15:41:24,869 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-04-30 15:41:47,064 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-04-30 15:41:47,133 - drug_discovery - ERROR - 生成对接可视化失败: Must instantiate viewer before generating image.
