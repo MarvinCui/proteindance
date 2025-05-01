@@ -247,3 +247,23 @@
 2025-04-30 15:41:24,869 - chembl_webresource_client.url_query - INFO - From cache: True
 2025-04-30 15:41:47,064 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
 2025-04-30 15:41:47,133 - drug_discovery - ERROR - 生成对接可视化失败: Must instantiate viewer before generating image.
+2025-05-01 09:41:22,387 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-01 09:41:28,477 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-05-01 09:41:39,613 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-05-01 09:41:39,614 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-05-01 09:41:40,174 - drug_discovery - INFO - 结构文件已下载: /var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/P31645_AF.pdb
+2025-05-01 09:41:52,531 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-05-01 09:41:52,531 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-05-01 09:42:02,515 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-01 09:42:02,515 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-01 09:42:02,515 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-01 09:42:02,515 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-01 09:42:04,585 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-01 09:42:04,585 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-01 09:42:06,241 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-01 09:42:06,241 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-01 09:42:06,241 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-01 09:42:26,871 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-05-01 09:42:26,995 - drug_discovery - ERROR - SDF转PDBQT失败: [Errno 2] No such file or directory: 'obabel'
+2025-05-01 09:50:25,502 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-01 09:50:31,739 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
