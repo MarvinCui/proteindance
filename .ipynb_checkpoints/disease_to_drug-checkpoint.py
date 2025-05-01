@@ -78,7 +78,7 @@ from Bio.PDB import PDBList
 
 import re
 
-import openai  # pip install openai>=1.2.4
+import openai             # pip install openai>=1.2.4
 
 # ------------------------------------------------------------------
 
@@ -92,9 +92,10 @@ if TMP_DIR.exists():
     shutil.rmtree(TMP_DIR)
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-OPENAI_API_BASE = "https://api.siliconflow.cn/v1"  # DeepSeek Chat 兼容 OpenAI
 
-OPENAI_API_KEY = "sk-kiuwnsdtlpclsjguvgajhuqdgowypqhmgozbxhhnenucutdp"  # TODO: ←← 在此填入 DeepSeek API Key
+OPENAI_API_BASE = "https://api.siliconflow.cn/v1"   # DeepSeek Chat 兼容 OpenAI
+
+OPENAI_API_KEY  = "sk-kiuwnsdtlpclsjguvgajhuqdgowypqhmgozbxhhnenucutdp"      # TODO: ←← 在此填入 DeepSeek API Key
 
 TMP_DIR = Path(tempfile.gettempdir()) / "drug_flow"
 
@@ -102,12 +103,11 @@ TMP_DIR.mkdir(exist_ok=True)
 
 openai.api_base = OPENAI_API_BASE
 
-openai.api_key = OPENAI_API_KEY
+openai.api_key  = OPENAI_API_KEY
 
 HEADERS_JSON = {"Content-Type": "application/json"}
 
 UNIPROT_REST = "https://rest.uniprot.org"
-
 
 # ------------------------------------------------------------------
 
@@ -116,13 +116,15 @@ UNIPROT_REST = "https://rest.uniprot.org"
 # ------------------------------------------------------------------
 
 def banner(msg: str):
-    print(f"\n{'=' * 10} {msg} {'=' * 10}")
 
+    print(f"\n{'='*10} {msg} {'='*10}")
 
 def choose(items: List[str], prompt: str) -> int:
+
     """打印列表并让用户选择编号（从 1 开始）。"""
 
     for i, it in enumerate(items, 1):
+
         print(f"{i:2d}. {it}")
 
     while True:
@@ -130,10 +132,10 @@ def choose(items: List[str], prompt: str) -> int:
         sel = input(prompt).strip()
 
         if sel.isdigit() and 1 <= int(sel) <= len(items):
+
             return int(sel) - 1
 
         print("输入无效，请重新输入编号！")
-
 
 # ------------------------------------------------------------------
 
@@ -142,6 +144,7 @@ def choose(items: List[str], prompt: str) -> int:
 # ------------------------------------------------------------------
 
 def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
+
     """调用 DeepSeek Chat，返回蛋白候选名列表。"""
 
     prompt = f"列举与{disease_chinese}相关、可作为药物靶点的蛋白基因符号（仅返回{top_k}个以内，不要解释）。"
@@ -171,10 +174,10 @@ def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
         token = re.sub(r"[^A-Za-z0-9_-]", "", l.split()[0])
 
         if 2 <= len(token) <= 12:
+
             proteins.append(token.upper())
 
     return proteins[:top_k]
-
 
 # ------------------------------------------------------------------
 
@@ -183,6 +186,7 @@ def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
 # ------------------------------------------------------------------
 
 def search_uniprot(gene_symbol: str, organism_id="9606") -> List[Dict]:
+
     """返回 [{'acc': 'P31645', 'name': 'Sodium‑dependent serotonin transporter'}, ...]"""
 
     url = (UNIPROT_REST +
@@ -225,8 +229,8 @@ def search_uniprot(gene_symbol: str, organism_id="9606") -> List[Dict]:
 
     return hits
 
-
 def get_pdb_ids_for_uniprot(accession: str, max_ids=10) -> List[str]:
+
     """使用 RCSB Search API 通过 UniProtID 找 PDB 代码。"""
 
     query = {
@@ -267,8 +271,8 @@ def get_pdb_ids_for_uniprot(accession: str, max_ids=10) -> List[str]:
 
     return ids[:max_ids]
 
-
 def download_pdb(pdb_id: str, dest_dir=TMP_DIR) -> Path:
+
     pdb_list = PDBList()
 
     fname = pdb_list.retrieve_pdb_file(pdb_id, file_format="pdb", pdir=str(dest_dir))
@@ -276,19 +280,21 @@ def download_pdb(pdb_id: str, dest_dir=TMP_DIR) -> Path:
     # Biopython 会存 gz → 解压
 
     if fname.endswith(".gz"):
+
         import gzip, shutil as sh
 
         out = dest_dir / f"{pdb_id}.pdb"
 
         with gzip.open(fname, "rb") as fin, open(out, "wb") as fout:
+
             sh.copyfileobj(fin, fout)
 
         return out
 
     return Path(fname)
 
-
 def download_alphafold(uniprot_acc: str, dest_dir=TMP_DIR) -> Path | None:
+
     """AlphaFold DB 预测结构 v4，如果存在返回路径；否则返回 None。"""
 
     url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_acc}-F1-model_v4.pdb"
@@ -302,25 +308,26 @@ def download_alphafold(uniprot_acc: str, dest_dir=TMP_DIR) -> Path | None:
         with open(out, "wb") as f:
 
             for chunk in r.iter_content(8192):
+
                 f.write(chunk)
 
         return out
 
     return None
 
-
 def get_pdb_ids_for_gene(gene_symbol: str, max_ids=10):
+
     query = {
 
         "query": {
 
-            "type": "terminal", "service": "text",
+            "type":"terminal","service":"text",
 
-            "parameters": {"value": gene_symbol, "attribute": "rcsb_entity_source_organism.ncbi_gene_name.value"}
+            "parameters":{"value":gene_symbol,"attribute":"rcsb_entity_source_organism.ncbi_gene_name.value"}
 
         },
 
-        "return_type": "entry", "request_options": {"return_all_hits": True}
+        "return_type":"entry","request_options":{"return_all_hits":True}
 
     }
 
@@ -331,7 +338,6 @@ def get_pdb_ids_for_gene(gene_symbol: str, max_ids=10):
     res.raise_for_status()
 
     return [x["identifier"] for x in res.json().get("result_set", [])][:max_ids]
-
 
 # ------------------------------------------------------------------
 
@@ -351,8 +357,8 @@ from pathlib import Path
 
 from typing import List, Dict
 
-
 def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
+
     """
 
 调用 P2Rank >=2.4 二进制 prank 预测口袋。
@@ -382,6 +388,7 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
     for c in candidates:
 
         if c.exists() and c.is_file():
+
             bin_path = c
 
             break
@@ -393,6 +400,7 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
         env = os.getenv("P2RANK_BIN")
 
         if env and Path(env).exists():
+
             bin_path = Path(env)
 
     # 3) 再试 which
@@ -402,6 +410,7 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
         w = which("prank")
 
         if w:
+
             bin_path = Path(w)
 
     # 4) 最后用传入的 prank_bin
@@ -411,9 +420,11 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
         cand = Path(prank_bin).expanduser()
 
         if cand.exists():
+
             bin_path = cand
 
     if not bin_path:
+
         raise FileNotFoundError(
 
             f"未找到 P2Rank 可执行文件。候选路径：{candidates}，"
@@ -455,6 +466,7 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
     pockets: List[Dict] = []
 
     for _, row in df.iterrows():
+
         x = row["center_x"]
 
         y = row["center_y"]
@@ -473,8 +485,8 @@ def run_p2rank(pdb_path: Path, prank_bin: str | None = None) -> List[Dict]:
 
     return sorted(pockets, key=lambda p: p["score"], reverse=True)
 
-
 def run_dogsite_api(pdb_path: Path) -> List[Dict]:
+
     """
 
 调 ProteinsPlus REST，返回 [{'center': (x,y,z), 'score': druggability}, ...]
@@ -499,7 +511,7 @@ def run_dogsite_api(pdb_path: Path) -> List[Dict]:
 
     url_stat = f"https://proteins.plus/api/v2/dogsite/status/{job_id}/"
 
-    url_res = f"https://proteins.plus/api/v2/dogsite/result/{job_id}/"
+    url_res  = f"https://proteins.plus/api/v2/dogsite/result/{job_id}/"
 
     for _ in range(60):
 
@@ -512,6 +524,7 @@ def run_dogsite_api(pdb_path: Path) -> List[Dict]:
             pockets = []
 
             for p in data["pockets"]:
+
                 x, y, z = p["center"]
 
                 pockets.append({"center": (x, y, z),
@@ -524,7 +537,6 @@ def run_dogsite_api(pdb_path: Path) -> List[Dict]:
 
     raise RuntimeError("DoGSite 预测超时")
 
-
 # ------------------------------------------------------------------
 
 # 4. 虚拟筛选（获取SMILES部分）
@@ -532,6 +544,7 @@ def run_dogsite_api(pdb_path: Path) -> List[Dict]:
 # ------------------------------------------------------------------
 
 def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
+
     """
 
 通过 ChEMBL REST API 拉取该 UniProt 蛋白的 IC50 抑制化合物 SMILES。
@@ -549,6 +562,7 @@ def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
     )
 
     if not res:
+
         print(f"⚠ ChEMBL 中未找到 UniProt {uniprot_acc} 对应的 target，跳过。")
 
         return []
@@ -561,19 +575,19 @@ def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
 
     activity = new_client.activity.filter(
 
-        target_chembl_id=chembl_id,
+            target_chembl_id=chembl_id,
 
-        standard_type="IC50"
+            standard_type="IC50"
 
-    ).only([
+        ).only([
 
-        "molecule_chembl_id",
+            "molecule_chembl_id",
 
-        "canonical_smiles",
+            "canonical_smiles",
 
-        "standard_value"
+            "standard_value"
 
-    ]).order_by("standard_value")[: max_hits]
+        ]).order_by("standard_value")[: max_hits]
 
     smiles = []
 
@@ -582,6 +596,7 @@ def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
         smi = act.get("canonical_smiles")
 
         if smi:
+
             smiles.append(smi)
 
     smiles = list(dict.fromkeys(smiles))  # 去重，保顺序
@@ -590,8 +605,8 @@ def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
 
     return smiles
 
-
 def smiles_to_pdbqt(smiles: str, name="lig") -> Path:
+
     """RDKit SMILES → 3D 结构 → PDBQT (用 openbabel obabel 命令)."""
 
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
@@ -610,7 +625,6 @@ def smiles_to_pdbqt(smiles: str, name="lig") -> Path:
 
     return pdbqt
 
-
 # ------------------------------------------------------------------
 
 # 主流程
@@ -618,6 +632,7 @@ def smiles_to_pdbqt(smiles: str, name="lig") -> Path:
 # ------------------------------------------------------------------
 
 def main():
+
     banner("疾病 → 蛋白靶点自动化工作流")
 
     disease = input("请输入疾病名称（中文）：").strip()
@@ -647,6 +662,7 @@ def main():
         pdb_ids = get_pdb_ids_for_gene(gene_symbol)  # 需写一个简单函数
 
         if not pdb_ids:
+
             print("仍未找到结构，程序终止。")
 
             return
@@ -674,6 +690,7 @@ def main():
         struct_path = download_alphafold(acc)
 
         if not struct_path:
+
             print("AlphaFold 无可用模型，改用 PDB。")
 
             src_idx = 1
@@ -683,6 +700,7 @@ def main():
         pdb_ids = get_pdb_ids_for_uniprot(acc)
 
         if not pdb_ids:
+
             print("无 PDB 结构！退出。")
 
             return
@@ -710,11 +728,12 @@ def main():
         pockets = run_dogsite_api(struct_path)
 
     if not pockets:
+
         print("口袋预测失败！")
 
         return
 
-    pk_choices = [f"Score={p['score']:.2f}, Center={tuple(round(x, 2) for x in p['center'])}"
+    pk_choices = [f"Score={p['score']:.2f}, Center={tuple(round(x,2) for x in p['center'])}"
 
                   for p in pockets]
 
@@ -735,16 +754,19 @@ def main():
         smiles_list = fetch_chembl_smiles(acc, max_hits=10)
 
         if not smiles_list:
+
             print("未获取到 SMILES，转为手动输入模式。")
 
             mode = "2"
 
     if mode == "2":
+
         raw = input("请手动输入 SMILES 列表（逗号分隔）: ")
 
         smiles_list = [s.strip() for s in raw.split(",") if s.strip()]
 
     if not smiles_list:
+
         print("❌ 没有可用的候选配体，程序终止。")
 
         return
@@ -767,9 +789,9 @@ def main():
             mol = Chem.AddHs(mol)
             AllChem.EmbedMolecule(mol, AllChem.ETKDG())
             AllChem.UFFOptimizeMolecule(mol)
-            sdf_file = TMP_DIR / f"ligand_{i + 1}.sdf"
+            sdf_file = TMP_DIR / f"ligand_{i+1}.sdf"
             Chem.MolToMolFile(mol, str(sdf_file))
-            print(f"已保存配体{i + 1}的SDF文件: {sdf_file}")
+            print(f"已保存配体{i+1}的SDF文件: {sdf_file}")
 
     banner("数据准备完成")
     print(f"所有文件已保存在: {TMP_DIR}")
@@ -778,7 +800,6 @@ def main():
     print("2. CB-Dock: http://cao.labshare.cn/cb-dock2/")
     print("3. PrankWeb: https://prankweb.cz/")
     print("\n可以使用准备好的结构文件和口袋坐标进行对接，祝您科研顺利！")
-
 
 if __name__ == "__main__":
 
