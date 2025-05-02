@@ -267,3 +267,353 @@
 2025-05-01 09:42:26,995 - drug_discovery - ERROR - SDF转PDBQT失败: [Errno 2] No such file or directory: 'obabel'
 2025-05-01 09:50:25,502 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
 2025-05-01 09:50:31,739 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-05-01 10:56:43,639 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7777
+ * Running on http://198.18.0.1:7777
+2025-05-01 10:56:43,640 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-01 10:56:43,640 - werkzeug - INFO -  * Restarting with stat
+2025-05-01 10:56:46,094 - werkzeug - WARNING -  * Debugger is active!
+2025-05-01 10:56:46,102 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-01 10:57:23,659 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7777
+ * Running on http://198.18.0.1:7777
+2025-05-01 10:57:23,659 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-01 10:57:23,659 - werkzeug - INFO -  * Restarting with stat
+2025-05-01 10:57:26,054 - werkzeug - WARNING -  * Debugger is active!
+2025-05-01 10:57:26,059 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-01 10:58:16,886 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7777
+ * Running on http://198.18.0.1:7777
+2025-05-01 10:58:16,886 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-01 10:58:16,886 - werkzeug - INFO -  * Restarting with stat
+2025-05-01 10:58:19,814 - werkzeug - WARNING -  * Debugger is active!
+2025-05-01 10:58:19,819 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-01 10:58:38,562 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:7777
+2025-05-01 10:58:38,562 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-01 10:58:38,562 - werkzeug - INFO -  * Restarting with stat
+2025-05-01 10:58:40,785 - werkzeug - WARNING -  * Debugger is active!
+2025-05-01 10:58:40,790 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:28:18,627 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 22:28:28,218 - drug_discovery - INFO - 选定蛋白靶点: SLC6A4
+2025-05-02 22:28:41,798 - drug_discovery - INFO - AI选择了选项 1: P31645 — Sodium-dependent serotonin transporter
+2025-05-02 22:28:41,799 - drug_discovery - INFO - 选定UniProt ID: P31645
+2025-05-02 22:28:43,131 - drug_discovery - INFO - 结构文件已下载: /var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/P31645_AF.pdb
+2025-05-02 22:28:58,872 - drug_discovery - INFO - AI选择了选项 1: Score=32.17, Center=(-1.23, -1.44, -1.31)
+2025-05-02 22:28:58,872 - drug_discovery - INFO - 选定口袋中心坐标: (-1.2307, -1.4394, -1.3055)
+2025-05-02 22:29:13,171 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 22:29:13,171 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 22:29:13,171 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-02 22:29:13,171 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 22:29:15,269 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 22:29:15,269 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 22:29:16,487 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 22:29:16,487 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 22:29:16,487 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-02 22:29:39,887 - drug_discovery - INFO - 优化后的SMILES: CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccc(F)cc21
+2025-05-02 22:29:40,019 - drug_discovery - ERROR - SDF转PDBQT失败: [Errno 2] No such file or directory: 'obabel'
+2025-05-02 22:38:21,443 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:4399
+ * Running on http://198.18.0.1:4399
+2025-05-02 22:38:21,444 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:38:21,444 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:38:23,505 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:38:23,512 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:38:52,205 - werkzeug - INFO -  * Detected change in '/Users/wenzhenxiong/Documents/ProteinDance/app.py', reloading
+2025-05-02 22:38:52,312 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:38:54,375 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:38:54,381 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:38:58,454 - werkzeug - INFO -  * Detected change in '/Users/wenzhenxiong/Documents/ProteinDance/app.py', reloading
+2025-05-02 22:38:58,574 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:39:00,681 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:39:00,688 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:39:02,748 - werkzeug - INFO -  * Detected change in '/Users/wenzhenxiong/Documents/ProteinDance/app.py', reloading
+2025-05-02 22:39:02,854 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:39:07,474 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-02 22:39:07,474 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:41:13,080 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-02 22:41:13,080 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:43:45,346 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://198.18.0.1:5000
+2025-05-02 22:43:45,347 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:43:45,347 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:43:47,374 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:43:47,381 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:44:15,344 - werkzeug - INFO - 127.0.0.1 - - [02/May/2025 22:44:15] "[33mGET / HTTP/1.1[0m" 404 -
+2025-05-02 22:44:15,443 - werkzeug - INFO - 127.0.0.1 - - [02/May/2025 22:44:15] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-02 22:44:30,007 - werkzeug - INFO - 127.0.0.1 - - [02/May/2025 22:44:30] "[33mGET / HTTP/1.1[0m" 404 -
+2025-05-02 22:44:30,128 - werkzeug - INFO - 127.0.0.1 - - [02/May/2025 22:44:30] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-02 22:44:31,769 - werkzeug - INFO - 127.0.0.1 - - [02/May/2025 22:44:31] "[33mGET / HTTP/1.1[0m" 404 -
+2025-05-02 22:45:21,597 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://198.18.0.1:5000
+2025-05-02 22:45:21,597 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:45:21,598 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:45:23,589 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:45:23,595 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:46:04,851 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://198.18.0.1:5000
+2025-05-02 22:46:04,851 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:47:10,329 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.104:5000
+2025-05-02 22:47:10,329 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:47:10,329 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:47:12,710 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:47:12,716 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 22:47:28,436 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.104:5000
+2025-05-02 22:47:28,436 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-02 22:47:28,436 - werkzeug - INFO -  * Restarting with stat
+2025-05-02 22:47:30,535 - werkzeug - WARNING -  * Debugger is active!
+2025-05-02 22:47:30,540 - werkzeug - INFO -  * Debugger PIN: 447-844-185
+2025-05-02 23:07:17,113 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:13:30,077 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:13:32,394 - drug_discovery - ERROR - 获取结构来源失败: [Errno 2] No such file or directory: '/var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/temp_check/P31645_AF.pdb'
+2025-05-02 23:18:52,371 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:18:57,860 - drug_discovery - ERROR - 预测口袋失败: P2Rank执行失败: [INFO] Console - P2Rank 2.5
+[INFO] Console - 
+[INFO] Main - loading default config from [/Users/wenzhenxiong/Documents/ProteinDance/p2rank/config/default.groovy]
+[INFO] Console - DIR: /Users/wenzhenxiong/Documents/ProteinDance/p2rank/config/../test_data
+[INFO] Console - DIR2: /Users/wenzhenxiong/Documents/ProteinDance/p2rank/config/../test_data
+[INFO] Console - DIR: /Users/wenzhenxiong/Documents/ProteinDance/p2rank/config/../test_output
+[INFO] Console - DIR2: /Users/wenzhenxiong/Documents/ProteinDance/p2rank/config/../test_output
+[INFO] Console - predicting pockets for proteins from dataset [AF-P31645-F1-model_v4.pdb]
+[INFO] PredictPocketsRoutine - outdir: /var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/AF-P31645-F1-model_v4_p2rank
+[INFO] Model - Loading model from directory (v3 format): /Users/wenzhenxiong/Documents/ProteinDance/p2rank/models/default
+[INFO] FeatureSetup - enabledFeatures: [chem, volsite, protrusion, bfactor, atom_table]
+[INFO] Dataset - processing dataset [AF-P31645-F1-model_v4.pdb] using 0 threads
+[INFO] Dataset - 
+------------------------------------------------------------------------------------------------------------------------
+processing [AF-P31645-F1-model_v4.pdb] (1/1)
+------------------------------------------------------------------------------------------------------------------------
+
+[INFO] Console - processing [AF-P31645-F1-model_v4.pdb] (1/1)
+[INFO] Protein - loading protein [/Users/wenzhenxiong/Documents/ProteinDance/AF-P31645-F1-model_v4.pdb]
+[INFO] PdbUtils - loading file [AF-P31645-F1-model_v4.pdb]
+[ERROR] Dataset - error processing dataset item [AF-P31645-F1-model_v4.pdb]
+java.io.FileNotFoundException: AF-P31645-F1-model_v4.pdb (No such file or directory)
+	at java.base/java.io.FileInputStream.open0(Native Method) ~[?:?]
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:216) ~[?:?]
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:157) ~[?:?]
+	at cz.siret.prank.utils.Futils.bufferedFileInputStream(Futils.groovy:252) ~[p2rank.jar:?]
+	at cz.siret.prank.utils.Futils.inputStream(Futils.groovy:215) ~[p2rank.jar:?]
+	at cz.siret.prank.utils.Futils.inputStream(Futils.groovy:248) ~[p2rank.jar:?]
+	at cz.siret.prank.utils.PdbUtils.loadFromPdbFile(PdbUtils.groovy:72) ~[p2rank.jar:?]
+	at cz.siret.prank.utils.PdbUtils.loadFromFile(PdbUtils.groovy:67) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.Protein.loadFile(Protein.groovy:481) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.Protein.load(Protein.groovy:423) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.loaders.DatasetItemLoader.loadPredictionPair(DatasetItemLoader.groovy:46) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.Dataset$Item.loadPredictionPair(Dataset.groovy:881) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.Dataset$Item.getPredictionPair(Dataset.groovy:863) ~[p2rank.jar:?]
+	at cz.siret.prank.program.routines.predict.PredictPocketsRoutine$_execute_closure1.doCall(PredictPocketsRoutine.groovy:90) ~[p2rank.jar:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:343) ~[groovy-4.0.23.jar:4.0.23]
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:328) ~[groovy-4.0.23.jar:4.0.23]
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:279) ~[groovy-4.0.23.jar:4.0.23]
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1007) ~[groovy-4.0.23.jar:4.0.23]
+	at groovy.lang.Closure.call(Closure.java:433) ~[groovy-4.0.23.jar:4.0.23]
+	at groovy.lang.Closure.call(Closure.java:422) ~[groovy-4.0.23.jar:4.0.23]
+	at cz.siret.prank.domain.Dataset$1.processItem(Dataset.groovy:161) ~[p2rank.jar:?]
+	at cz.siret.prank.domain.Dataset.processssItem(Dataset.groovy:244) [p2rank.jar:?]
+	at cz.siret.prank.domain.Dataset.access$0(Dataset.groovy) [p2rank.jar:?]
+	at cz.siret.prank.domain.Dataset$2.call(Dataset.groovy:208) [p2rank.jar:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) [?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) [?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) [?:?]
+	at java.base/java.lang.Thread.run(Thread.java:833) [?:?]
+[INFO] Console - predicting pockets finished in 0 hours 0 minutes 0.434 seconds
+[INFO] Console - results saved to directory [/var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/AF-P31645-F1-model_v4_p2rank]
+[INFO] Console - ERROR on processing 1 file(s):
+[INFO] Console -     [AF-P31645-F1-model_v4.pdb]
+[INFO] Console - 
+[INFO] Console - Finished with ERROR in 0 hours 0 minutes 0.808 seconds.
+
+2025-05-02 23:27:37,296 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:27:53,662 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:27:53,695 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:27:53,695 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:27:53,695 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:27:53,695 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:27:55,782 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:27:55,782 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:27:55,784 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:27:55,784 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:27:55,784 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:37:43,093 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:38:00,381 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:38:00,402 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:38:00,402 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:38:00,402 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:38:00,402 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:38:02,504 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:38:02,504 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:38:02,506 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:38:02,506 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:38:02,506 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:43:32,222 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:43:47,888 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:43:47,907 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:43:47,907 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:43:47,907 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:43:47,907 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:43:50,002 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:43:50,002 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:43:50,005 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:43:50,005 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:43:50,005 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:44:38,625 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:44:53,121 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:44:53,145 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:44:53,145 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:44:53,145 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:44:53,146 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:44:55,245 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:44:55,245 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:44:55,249 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:44:55,249 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:44:55,250 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:49:31,312 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:49:48,528 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:49:48,568 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:49:48,569 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:49:48,569 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:49:48,569 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:49:50,661 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:49:50,661 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:49:50,665 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:49:50,665 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:49:50,665 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:55:00,959 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:55:16,458 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:55:16,838 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:55:16,838 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:55:16,838 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:55:16,838 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:55:18,915 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:55:18,915 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:55:18,917 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:55:18,917 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:55:18,917 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:56:40,640 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-05-02 23:57:50,772 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-05-02 23:58:22,798 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-02 23:58:37,883 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-02 23:58:38,216 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-02 23:58:38,216 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:58:38,216 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:58:38,216 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-02 23:58:40,309 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-02 23:58:40,309 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-02 23:58:40,311 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-02 23:58:40,311 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-02 23:58:40,311 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-02 23:59:18,095 - drug_discovery - INFO - AI选择了选项 1: BCR-ABL1
+2025-05-03 00:01:18,466 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-05-03 00:06:25,886 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-05-03 00:13:16,666 - drug_discovery - INFO - AI选择了选项 1: 10
+2025-05-03 00:14:22,105 - drug_discovery - INFO - AI选择了选项 4: SLC6A4
+2025-05-03 00:14:38,636 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:14:38,654 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:14:38,654 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:14:38,654 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:14:38,654 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:14:40,749 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:14:40,749 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:14:40,751 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:14:40,751 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:14:40,751 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:16:51,813 - drug_discovery - INFO - AI选择了选项 1: BMPR2
+2025-05-03 00:17:13,795 - drug_discovery - INFO - AI选择了选项 1: #1 score=18.69
+2025-05-03 00:17:15,028 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:17:15,028 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'Q13873'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:17:15,028 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-03 00:17:15,028 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:17:17,123 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:17:17,123 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:17:21,306 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:17:21,306 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL5467'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:17:21,306 - chembl_webresource_client.url_query - INFO - From cache: False
+2025-05-03 00:18:34,325 - drug_discovery - INFO - AI选择了选项 1: BMPR2
+2025-05-03 00:18:50,069 - drug_discovery - INFO - AI选择了选项 1: #1 score=18.69
+2025-05-03 00:18:50,144 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:18:50,144 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'Q13873'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:18:50,144 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:18:50,144 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:18:52,242 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:18:52,242 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:18:52,247 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:18:52,247 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL5467'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:18:52,247 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:29:34,831 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-03 00:29:50,787 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:29:50,813 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:29:50,813 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:29:50,813 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:29:50,813 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:29:52,912 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:29:52,913 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:29:52,917 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:29:52,917 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:29:52,917 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:31:18,641 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-03 00:31:33,765 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:31:33,803 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:31:33,803 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:31:33,803 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:31:33,803 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:31:35,889 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:31:35,890 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:31:35,892 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:31:35,892 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:31:35,892 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:33:28,436 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-03 00:33:43,393 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:33:43,419 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:33:43,419 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:33:43,419 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:33:43,419 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:33:45,514 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:33:45,515 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:33:45,516 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:33:45,516 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:33:45,516 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:35:19,859 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-03 00:35:34,963 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:35:35,000 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:35:35,001 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:35:35,001 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:35:35,001 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:35:37,095 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:35:37,095 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:35:37,099 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:35:37,099 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:35:37,099 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:36:51,546 - drug_discovery - INFO - AI选择了选项 1: SLC6A4
+2025-05-03 00:37:07,179 - drug_discovery - INFO - AI选择了选项 1: #1 score=32.17
+2025-05-03 00:37:07,195 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/target.json
+2025-05-03 00:37:07,195 - chembl_webresource_client.url_query - INFO - [('target_components__accession', 'P31645'), ('only', ['target_chembl_id']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:37:07,195 - chembl_webresource_client.url_query - INFO - From cache: True
+2025-05-03 00:37:07,195 - chembl_webresource_client.url_query - INFO - reusing chunk
+2025-05-03 00:37:09,284 - chembl_webresource_client.query_set - INFO - __getitem__, self.limits = (0, 10), k = slice(None, 10, None)
+2025-05-03 00:37:09,284 - chembl_webresource_client.url_query - INFO - resetting chunk
+2025-05-03 00:37:09,286 - chembl_webresource_client.url_query - INFO - https://www.ebi.ac.uk/chembl/api/data/activity.json
+2025-05-03 00:37:09,287 - chembl_webresource_client.url_query - INFO - [('target_chembl_id', 'CHEMBL228'), ('standard_type', 'IC50'), ('order_by', 'standard_value'), ('only', ['molecule_chembl_id', 'canonical_smiles', 'standard_value']), ('limit', 20), ('offset', 0)]
+2025-05-03 00:37:09,287 - chembl_webresource_client.url_query - INFO - From cache: True
