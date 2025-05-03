@@ -14,7 +14,7 @@ export default function HistoryPanel({ logs }: Props) {
   return (
     <>
       <style>{`
-        .history { width:260px; font-size:13px; }
+        .history { width:330px; font-size:13px; }
         .header  { font-weight:600; background:#e2e8f0;
                    padding:8px 12px; border-radius:8px; cursor:pointer;
                    user-select:none; }

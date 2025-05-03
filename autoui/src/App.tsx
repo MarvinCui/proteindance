@@ -6,6 +6,7 @@ import DecisionPanel from './components/DecisionPanel'
 import LogPanel from './components/LogPanel'
 import HistoryPanel from './components/HistoryPanel'
 import * as api from './services/api'
+import ResultPanel from './components/ResultPanel.tsx'               // <-- 新增
 
 interface LogEntry {
   step: number
@@ -32,7 +33,6 @@ export default function App() {
   }
 
   const handleStart = async () => {
-    // 重置
     setStep(0)
     setLogs([])
     setDecisionTarget(null)
@@ -51,7 +51,6 @@ export default function App() {
       addLog(1, '状态', `DeepSeek 返回：${tRes.targets.join('、')}`)
 
       // STEP 2: AI 决策 选靶点
-      setStep(2)
       addLog(2, '状态', 'AI 正在选择最佳靶点…')
       const td = await api.aiDecision({
         options: tRes.targets,
@@ -64,35 +63,34 @@ export default function App() {
       addLog(2, '决策', `选择: ${td.selected_option} 理由: ${td.explanation}`)
 
       // STEP 3: UniProt 检索
-      setStep(3)
-      addLog(3, '状态', `查询 UniProt 条目：${td.selected_option}`)
+      setStep(2)
+      addLog(2, '状态', `查询 UniProt 条目：${td.selected_option}`)
       const uRes = await api.getUniprotEntries(td.selected_option)
-      addLog(3, '日志', JSON.stringify(uRes))
+      addLog(2, '日志', JSON.stringify(uRes))
       if (!uRes.success) throw new Error(uRes.error)
-      addLog(3, '状态', `UniProt 返回：${uRes.entries.map(e => e.acc).join('、')}`)
+      addLog(2, '状态', `UniProt 返回：${uRes.entries.map(e => e.acc).join('、')}`)
 
       // STEP 4: 结构获取
-      setStep(4)
+      setStep(3)
       if (!uRes.entries || uRes.entries.length === 0) {
-        const errMsg = '未找到任何 UniProt 条目，请确认基因符号是否正确'
-        addLog(4, '状态', `错误：${errMsg}`)
+        addLog(3, '状态', '错误：未找到任何 UniProt 条目，请确认基因符号是否正确')
         return
       }
       const acc = uRes.entries[0].acc
-      addLog(4, '状态', `获取 UniProt Accession：${acc}`)
+      addLog(3, '状态', `获取 UniProt Accession：${acc}`)
       const sRes = await api.getStructureSources(acc)
-      addLog(4, '日志', JSON.stringify(sRes))
+      addLog(3, '日志', JSON.stringify(sRes))
       if (!sRes.success) throw new Error(sRes.error)
-      const modelPath = sRes.structure_path ?? sRes.pdb_ids[0]
-      addLog(4, '状态', `结构文件路径：${modelPath}`)
+      const modelPath = (sRes as any).structure_path ?? (sRes as any).pdb_ids[0]
+      addLog(3, '状态', `结构文件路径：${modelPath}`)
 
       // STEP 5: 口袋预测
-      setStep(5)
-      addLog(5, '状态', `预测结合口袋：${modelPath}`)
+      setStep(4)
+      addLog(4, '状态', `预测结合口袋：${modelPath}`)
       const pRes = await api.predictPockets(modelPath)
-      addLog(5, '日志', JSON.stringify(pRes))
+      addLog(4, '日志', JSON.stringify(pRes))
       if (!pRes.success) throw new Error(pRes.error)
-      addLog(5, '状态', `检测到 ${pRes.pockets.length} 个候选口袋`)
+      addLog(4, '状态', `检测到 ${pRes.pockets.length} 个候选口袋`)
 
       // AI 决策 选口袋
       addLog(5, '状态', 'AI 正在选择最佳口袋…')
@@ -108,44 +106,44 @@ export default function App() {
       addLog(5, '决策', `选择: ${pd.selected_option} 理由: ${pd.explanation}`)
 
       // STEP 6: 配体获取
-      setStep(6)
-      addLog(6, '状态', `获取候选配体：${acc}`)
+      setStep(5)
+      addLog(5, '状态', `获取候选配体：${acc}`)
       const lRes = await api.getLigands(acc)
-      addLog(6, '日志', JSON.stringify(lRes))
+      addLog(5, '日志', JSON.stringify(lRes))
       if (!lRes.success) throw new Error(lRes.error)
       const allSmiles = [...(lRes.custom_smiles || []), ...(lRes.chembl_smiles || [])]
-      addLog(6, '状态', `共获取 ${allSmiles.length} 条 SMILES`)
+      addLog(5, '状态', `共获取 ${allSmiles.length} 条 SMILES`)
 
       // STEP 7: 化合物优化
-      setStep(7)
-      addLog(7, '状态', 'AI 正在优化化合物…')
+      setStep(6)
+      addLog(6, '状态', 'AI 正在优化化合物…')
       const cd = await api.selectCompound({
         smiles_list: allSmiles,
         disease,
         protein: td.selected_option,
         pocket_center: pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center
       })
-      addLog(7, '日志', JSON.stringify(cd))
+      addLog(6, '日志', JSON.stringify(cd))
       if (!cd.success) throw new Error(cd.error)
       setDecisionCompound(cd)
-      addLog(7, '决策', `优化后: ${cd.optimized_smiles} 理由: ${cd.explanation}`)
+      addLog(6, '决策', `优化后: ${cd.optimized_smiles} 理由: ${cd.explanation}`)
 
       // STEP 8: 分子图像
-      setStep(8)
-      addLog(8, '状态', '生成分子结构图…')
+      setStep(7)
+      addLog(7, '状态', '生成分子结构图…')
       const mi = await api.generateMoleculeImage(cd.optimized_smiles)
-      addLog(8, '日志', JSON.stringify(mi))
+      addLog(7, '日志', JSON.stringify(mi))
       if (mi.success) setMoleculeImage(mi.image_data)
 
       // STEP 9: 对接可视化
-      setStep(9)
-      addLog(9, '状态', '生成蛋白-配体对接图…')
+      setStep(8)
+      addLog(8, '状态', '生成蛋白-配体对接图…')
       const di = await api.generateDockingImage(
         modelPath,
         cd.optimized_smiles,
         pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center
       )
-      addLog(9, '日志', JSON.stringify(di))
+      addLog(8, '日志', JSON.stringify(di))
       if (di.success) setDockingImage(di.image_data)
 
       // STEP 10: 完成
@@ -156,7 +154,6 @@ export default function App() {
     }
   }
 
-  // 只有在流程开始（step>0）并且未完成（step<10）时，才显示呼吸边框
   const active = step > 0 && step < 10
 
   return (
@@ -167,10 +164,8 @@ export default function App() {
           background: #f0f2f7;
         }
         .wrapper {
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          padding: 40px; gap: 24px;
+          display: flex; justify-content: center;
+          align-items: flex-start; padding: 40px; gap: 24px;
         }
         .app {
           position: relative;
@@ -181,45 +176,86 @@ export default function App() {
           border: 2px solid transparent;
           overflow: hidden; z-index: 1;
         }
-        /* 呼吸边框动画 */
         .app.active {
           animation: borderBreathe 2.5s ease-in-out infinite;
         }
         @keyframes borderBreathe {
-          0%, 100% {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+          0%,100% {
+            border-color: rgba(79,70,229,0.4);
+            box-shadow: 0 0 0 0 rgba(79,70,229,0.4);
           }
           50% {
-            border-color: rgba(79, 70, 229, 1);
-            box-shadow: 0 0 20px 6px rgba(79, 70, 229, 0.3);
+            border-color: rgba(79,70,229,1);
+            box-shadow: 0 0 20px 6px rgba(79,70,229,0.3);
           }
         }
-        .input {
-          display: flex; gap: 16px; justify-content: center;
-          margin-bottom: 32px;
+
+        /* 标题区域＋logo */
+        .title-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
         }
-        input {
-          flex:1; padding:12px; font-size:16px;
-          border:1px solid #ccc; border-radius:8px;
+
+        .title-row h3 {
+          margin: 4px 0 0;
+          font-size: 16px;
+          color: #666;
         }
-        button {
-          background:#4f46e5; color:#fff; border:none;
-          padding:0 24px; border-radius:8px; font-size:16px;
-          cursor:pointer;
+
+        .logo-placeholder {
+          width: 40px; height: 40px;
+          background: #ccc; border-radius: 8px;
+          margin-right: 12px;
+          animation: pulseLogo 2s ease-in-out infinite;
+        }
+        @keyframes pulseLogo {
+          0%,100% { opacity: 0.6; }
+          50% { opacity: 1; }
         }
         h1 {
-          text-align:center; color:#333; margin-bottom:8px;
+          margin: 0; font-size: 28px; color: #333;
+          transition: color 0.3s;
         }
-        h3 {
-          text-align:center; color:#666; margin-bottom:24px;
+
+        /* 输入框 / 按钮 动画 */
+        .input {
+          display: flex; gap: 16px;
+          justify-content: center; margin-bottom: 32px;
+        }
+        .input input {
+          flex: 1; padding: 12px; font-size: 16px;
+          border: 1px solid #ccc; border-radius: 8px;
+          transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input input:focus {
+          border-color: #4f46e5;
+          box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+          outline: none;
+        }
+        .input button {
+          background: #4f46e5; color: #fff; border: none;
+          padding: 0 24px; border-radius: 8px; font-size: 16px;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .input button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .input button:active {
+          transform: translateY(0) scale(0.97);
         }
       `}</style>
 
       <div className="wrapper">
         <div className={`app${active ? ' active' : ''}`}>
-          <h1>Protein Dancer</h1>
-          <h3>基于 deepseek 的药物全自动开发程序</h3>
+          <div className="title-row">
+            {/* <div className="logo-placeholder" /> */}
+            <h1>Protein Dance</h1>
+            <h3>基于DeepSeek的全自动制药智能体</h3>
+          </div>
 
           {step === 0 ? (
             <div className="input">

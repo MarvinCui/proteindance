@@ -1254,7 +1254,7 @@ class DrugDiscoveryAPI:
             # 转换为base64
             with open(image_path, "rb") as f:
                 image_data = base64.b64encode(f.read()).decode("utf-8")
-
+            print("docking image"+image_data)
             return {
                 "success": True,
                 "image_path": image_path,
