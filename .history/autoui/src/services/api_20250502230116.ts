@@ -20,8 +20,8 @@ export interface ApiResponse<T> {
     return res.json();
   }
   
-  export async function getDiseaseTargets(disease: string, innovationLevel: number = 5) {
-    return postJson<string[]>('/disease-targets', { disease, innovation_level: innovationLevel });
+  export async function getDiseaseTargets(disease: string) {
+    return postJson<string[]>('/disease-targets', { disease });
   }
   
   export async function getUniprotEntries(gene_symbol: string) {
@@ -77,3 +77,4 @@ export interface ApiResponse<T> {
     }
     return res.json();
   }
+  

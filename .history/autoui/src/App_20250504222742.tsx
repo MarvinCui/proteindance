@@ -5,9 +5,8 @@ import StatusPanel from './components/StatusPanel'
 import DecisionPanel from './components/DecisionPanel'
 import LogPanel from './components/LogPanel'
 import HistoryPanel from './components/HistoryPanel'
-import InnovationSlider from './components/InnovationSlider'
 import * as api from './services/api'
-import ResultPanel from './components/ResultPanel.tsx'
+import ResultPanel from './components/ResultPanel.tsx'               // <-- 新增
 
 interface LogEntry {
   step: number
@@ -25,7 +24,6 @@ export default function App() {
   const [moleculeImage, setMoleculeImage] = useState<string | null>(null)
   const [dockingImage, setDockingImage] = useState<string | null>(null)
   const [workflowState, setWorkflowState] = useState<any>(null)
-  const [innovationLevel, setInnovationLevel] = useState(5)
 
   const addLog = (
     logStep: number,
@@ -48,8 +46,8 @@ export default function App() {
     try {
       // STEP 1: 靶点识别
       setStep(1)
-      addLog(1, '状态', `调用 DeepSeek 获取潜在蛋白靶点：${disease}（创新度：${innovationLevel}）`)
-      const tRes = await api.getDiseaseTargets(disease, innovationLevel)
+      addLog(1, '状态', `调用 DeepSeek 获取潜在蛋白靶点：${disease}`)
+      const tRes = await api.getDiseaseTargets(disease)
       addLog(1, '日志', JSON.stringify(tRes))
       if (!tRes.success) throw new Error(tRes.error)
       addLog(1, '状态', `DeepSeek 返回：${tRes.targets.join('、')}`)
@@ -257,25 +255,20 @@ export default function App() {
       <div className="wrapper">
         <div className={`app${active ? ' active' : ''}`}>
           <div className="title-row">
+            {/* <div className="logo-placeholder" /> */}
             <h1>Protein Dance</h1>
             <h3>基于DeepSeek的全自动制药智能体</h3>
           </div>
 
           {step === 0 ? (
-            <>
-              <div className="input">
-                <input
-                  value={disease}
-                  placeholder="输入疾病名称"
-                  onChange={e => setDisease(e.target.value)}
-                />
-                <button onClick={handleStart}>开始</button>
-              </div>
-              <InnovationSlider 
-                value={innovationLevel}
-                onChange={setInnovationLevel}
+            <div className="input">
+              <input
+                value={disease}
+                placeholder="输入疾病名称"
+                onChange={e => setDisease(e.target.value)}
               />
-            </>
+              <button onClick={handleStart}>开始</button>
+            </div>
           ) : step === 10 ? (
             <>
               <WorkflowStepper

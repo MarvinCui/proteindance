@@ -1,13 +1,99 @@
 // src/App.tsx
-import React, { useState } from 'react'
+import React, { useState,useEffect,useRef } from 'react'
 import WorkflowStepper from './components/WorkflowStepper'
 import StatusPanel from './components/StatusPanel'
 import DecisionPanel from './components/DecisionPanel'
 import LogPanel from './components/LogPanel'
 import HistoryPanel from './components/HistoryPanel'
-import InnovationSlider from './components/InnovationSlider'
 import * as api from './services/api'
-import ResultPanel from './components/ResultPanel.tsx'
+import ResultPanel from './components/ResultPanel.tsx'         // <-- 新增
+import CompletedView from './components/CompletedView'     // 新完成页组件  
+import { downloadAllResults } from './services/api'        // 批量下载的后端端点  
+import { Viewer } from 'molstar-react'                     // 在线蛋白质模型查看器  
+
+// src/App.tsx
+
+// 新增完成视图
+interface CompletedData {
+  disease: string
+  target: string
+  pocketImage?: string | null
+  moleculeImage?: string | null
+  dockingImage?: string | null
+  resultFiles: { name: string; url: string }[]
+  pdbUrl?: string | null
+}
+
+const CompletedView: React.FC<{ data: CompletedData }> = ({ data }) => {
+  const viewerRef = useRef<HTMLDivElement>(null)
+  const [viewerReady, setViewerReady] = useState(false)
+
+  useEffect(() => {
+    if (!data.pdbUrl || viewerReady) return
+    // 动态加载 molstar
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/molstar/build/viewer/molstar.js'
+    script.onload = () => {
+      // @ts-ignore
+      const viewer = new window.MolStar.Plugin.Viewer(viewerRef.current, {
+        layoutIsExpanded: false,
+        layoutShowControls: false,
+        layoutShowSequence: true,
+        layoutShowLog: false
+      })
+      viewer.loadStructureFromUrl(data.pdbUrl)
+      setViewerReady(true)
+    }
+    document.body.appendChild(script)
+  }, [data.pdbUrl, viewerReady])
+
+  return (
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: 32 }}>
+      <h2 style={{ textAlign: 'center' }}>🎉 研发流程已完成</h2>
+      <p style={{ marginTop: 16 }}>疾病: <strong>{data.disease}</strong></p>
+      <p>最终选择靶点: <strong>{data.target}</strong></p>
+
+      {data.pocketImage && (
+        <>
+          <h3>口袋预测</h3>
+          <img src={`data:image/png;base64,${data.pocketImage}`} style={{ width: '100%', borderRadius: 8 }} />
+        </>
+      )}
+
+      {data.moleculeImage && (
+        <>
+          <h3>优化化合物</h3>
+          <img src={`data:image/png;base64,${data.moleculeImage}`} style={{ width: '100%', borderRadius: 8 }} />
+        </>
+      )}
+
+      {data.dockingImage && (
+        <>
+          <h3>对接结果</h3>
+          <img src={`data:image/png;base64,${data.dockingImage}`} style={{ width: '100%', borderRadius: 8 }} />
+        </>
+      )}
+
+      {data.resultFiles.length > 0 && (
+        <>
+          <h3>下载结果文件</h3>
+          <ul>
+            {data.resultFiles.map(f => (
+              <li key={f.url}><a href={f.url} download>{f.name}</a></li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {data.pdbUrl && (
+        <>
+          <h3>在线查看蛋白质模型</h3>
+          <div ref={viewerRef} style={{ height: 400, borderRadius: 8, overflow: 'hidden', background: '#f4f5f8' }} />
+        </>
+      )}
+    </div>
+  )}
+
 
 interface LogEntry {
   step: number
@@ -24,8 +110,6 @@ export default function App() {
   const [decisionCompound, setDecisionCompound] = useState<any>(null)
   const [moleculeImage, setMoleculeImage] = useState<string | null>(null)
   const [dockingImage, setDockingImage] = useState<string | null>(null)
-  const [workflowState, setWorkflowState] = useState<any>(null)
-  const [innovationLevel, setInnovationLevel] = useState(5)
 
   const addLog = (
     logStep: number,
@@ -43,13 +127,12 @@ export default function App() {
     setDecisionCompound(null)
     setMoleculeImage(null)
     setDockingImage(null)
-    setWorkflowState(null)
 
     try {
       // STEP 1: 靶点识别
       setStep(1)
-      addLog(1, '状态', `调用 DeepSeek 获取潜在蛋白靶点：${disease}（创新度：${innovationLevel}）`)
-      const tRes = await api.getDiseaseTargets(disease, innovationLevel)
+      addLog(1, '状态', `调用 DeepSeek 获取潜在蛋白靶点：${disease}`)
+      const tRes = await api.getDiseaseTargets(disease)
       addLog(1, '日志', JSON.stringify(tRes))
       if (!tRes.success) throw new Error(tRes.error)
       addLog(1, '状态', `DeepSeek 返回：${tRes.targets.join('、')}`)
@@ -87,7 +170,6 @@ export default function App() {
       if (!sRes.success) throw new Error(sRes.error)
       const modelPath = (sRes as any).structure_path ?? (sRes as any).pdb_ids[0]
       addLog(3, '状态', `结构文件路径：${modelPath}`)
-      setWorkflowState({ uniprot_acc: acc, structure_path: modelPath })
 
       // STEP 5: 口袋预测
       setStep(4)
@@ -107,7 +189,7 @@ export default function App() {
       })
       addLog(5, '日志', JSON.stringify(pd))
       if (!pd.success) throw new Error(pd.error)
-      setDecisionPocket({ ...pd, pocket_center: pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center })
+      setDecisionPocket(pd)
       addLog(5, '决策', `选择: ${pd.selected_option} 理由: ${pd.explanation}`)
 
       // STEP 6: 配体获取
@@ -257,46 +339,20 @@ export default function App() {
       <div className="wrapper">
         <div className={`app${active ? ' active' : ''}`}>
           <div className="title-row">
+            {/* <div className="logo-placeholder" /> */}
             <h1>Protein Dance</h1>
             <h3>基于DeepSeek的全自动制药智能体</h3>
           </div>
 
           {step === 0 ? (
-            <>
-              <div className="input">
-                <input
-                  value={disease}
-                  placeholder="输入疾病名称"
-                  onChange={e => setDisease(e.target.value)}
-                />
-                <button onClick={handleStart}>开始</button>
-              </div>
-              <InnovationSlider 
-                value={innovationLevel}
-                onChange={setInnovationLevel}
+            <div className="input">
+              <input
+                value={disease}
+                placeholder="输入疾病名称"
+                onChange={e => setDisease(e.target.value)}
               />
-            </>
-          ) : step === 10 ? (
-            <>
-              <WorkflowStepper
-                currentStep={step}
-                stepLabels={[
-                  '靶点识别','UniProt检索','结构获取','口袋预测',
-                  '配体获取','化合物优化','分子图像','对接可视化','结果保存','完成'
-                ]}
-              />
-              <ResultPanel
-                disease={disease}
-                geneSymbol={decisionTarget?.selected_option}
-                uniprotAcc={workflowState?.uniprot_acc}
-                pocketCenter={decisionPocket?.pocket_center}
-                optimizedSmiles={decisionCompound?.optimized_smiles}
-                explanation={decisionCompound?.explanation}
-                moleculeImage={moleculeImage}
-                dockingImage={dockingImage}
-                structurePath={workflowState?.structure_path}
-              />
-            </>
+              <button onClick={handleStart}>开始</button>
+            </div>
           ) : (
             <>
               <WorkflowStepper
@@ -306,9 +362,23 @@ export default function App() {
                   '配体获取','化合物优化','分子图像','对接可视化','结果保存','完成'
                 ]}
               />
+
               <StatusPanel logs={logs.filter(l => l.category === '状态' && l.step === step)} />
               <DecisionPanel logs={logs.filter(l => l.category === '决策')} />
               <LogPanel logs={logs.filter(l => l.category === '日志' && l.step === step)} />
+
+              {moleculeImage && (
+                <img
+                  src={`data:image/png;base64,${moleculeImage}`}
+                  style={{ width:'100%', borderRadius:8, margin:'24px 0' }}
+                />
+              )}
+              {dockingImage && (
+                <img
+                  src={`data:image/png;base64,${dockingImage}`}
+                  style={{ width:'100%', borderRadius:8, margin:'24px 0' }}
+                />
+              )}
             </>
           )}
         </div>
