@@ -1,36 +1,8 @@
-# =====================
-# Python 常规
-# =====================
-__pycache__/
-*.py[cod]
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-env/               # 如果你的虚拟环境放在项目里
-venv/
+### Example user template template
+### Example user template
 
-# =====================
-# Node / React 前端
-# =====================
-node_modules/
-npm-debug.log*
-yarn-error.log*
-
-# =====================
-# JetBrains IDE (PyCharm/WebStorm…) 
-# =====================
-.idea/
+# IntelliJ project files
 *.iml
-
-# =====================
-# VSCode
-# =====================
-.vscode/
-
-# =====================
-# macOS 文件
-# =====================
+out
+gen
 .DS_Store
-
