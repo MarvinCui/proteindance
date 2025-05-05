@@ -496,7 +496,9 @@ Tuple[选择的索引（从0开始）, 决策解释]
         print_error(f"AI决策失败，默认选择第一项: {options[0]}")
         return 0, f"决策失败: {str(e)}"
 
-def ai_select_best_compound(smiles_list: List[str], disease: str, protein: str, pocket_center: tuple = None) -> Tuple[str, str, str]:
+
+def ai_select_best_compound(smiles_list: List[str], disease: str, protein: str, pocket_center: tuple = None) -> Tuple[
+    str, str, str]:
     """
 让AI从候选化合物中选择最好的先导化合物，并进行分子优化
 
@@ -514,12 +516,12 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 
         pocket_info = f"结合口袋位于坐标 {pocket_center}" if pocket_center else "未知口袋位置"
 
-        # 构建提示语
+        # 构建提示语 - 增加药物化学约束
         prompt = f"""作为药物化学专家，请分析以下候选化合物，为针对{disease}疾病的{protein}靶点选择最佳先导化合物。
             {pocket_info}
 
 候选SMILES列表:
-            {chr(10).join([f"{i+1}. {smi}" for i, smi in enumerate(smiles_list)])}
+            {chr(10).join([f"{i + 1}. {smi}" for i, smi in enumerate(smiles_list)])}
 
 请执行以下任务:
 1. 选择一个最佳先导化合物（给出SMILES和编号）
@@ -527,12 +529,16 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 3. 对该化合物进行结构优化，生成一个新的改进版SMILES
 4. 解释你做的修饰如何提高其作为药物的潜力
 
-请按以下格式回复：
-选择SMILES编号: [数字]
-选择的SMILES: [完整SMILES]
-选择理由: [100-200字解释]
-优化后的SMILES: [完整SMILES]
-优化解释: [100-200字解释]
+优化时必须严格遵守以下药物化学约束:
+- 分子量不超过500道尔顿
+- 氢键供体数量不超过5个
+- 氢键接受体不超过10个
+- 脂水分配系数(LogP)不超过5
+- 只做少量、精确的结构修饰（1-3处修改）
+- 不要添加复杂或大型的官能团
+- 避免引入复杂环系统或长链结构
+
+请确保修改后的SMILES代表一个合理的、小分子药物大小的化合物。
             """
 
         # 调用AI API
@@ -579,6 +585,23 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
         if not mol:
             print_warning(f"AI生成的优化SMILES无效，将使用原始选择的SMILES")
             optimized_smiles = selected_smiles
+        else:
+            # 增加药物性质验证
+            mw = Descriptors.MolWt(mol)
+            if mw > 500:
+                print_warning(f"AI优化的分子过大 (MW = {mw:.1f})，将使用原始选择的SMILES")
+                optimized_smiles = selected_smiles
+
+            # 检查其他基本药物化学属性
+            log_p = Descriptors.MolLogP(mol)
+            if log_p > 5.0:
+                print_warning(f"AI优化的分子LogP过高 (LogP = {log_p:.1f})，将使用原始选择的SMILES")
+                optimized_smiles = selected_smiles
+
+            # 检查原子数量，防止生成巨大分子
+            if mol.GetNumAtoms() > 50:
+                print_warning(f"AI优化的分子原子数过多 (Atoms = {mol.GetNumAtoms()})，将使用原始选择的SMILES")
+                optimized_smiles = selected_smiles
 
         # 组合解释
         explanation = f"选择理由: {reason}\n\n优化解释: {optimization_explanation}"
@@ -591,6 +614,7 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
         logger.error(f"AI选择化合物失败: {str(e)}")
         print_error(f"AI选择化合物失败，使用第一个化合物: {smiles_list[0]}")
         return smiles_list[0], smiles_list[0], f"选择失败: {str(e)}"
+
 
 def ai_explain_results(workflow_state: Dict[str, Any]) -> str:
     """生成对结果的AI解释 - 无Markdown格式"""
