@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from 'react'
 import WorkflowStepper from './components/WorkflowStepper'
 import StatusPanel from './components/StatusPanel'
@@ -23,7 +22,7 @@ export default function App() {
   const [decisionPocket, setDecisionPocket] = useState<any>(null)
   const [decisionCompound, setDecisionCompound] = useState<any>(null)
   const [moleculeImage, setMoleculeImage] = useState<string | null>(null)
-  const [dockingImage, setDockingImage] = useState<string | null>(null)
+  // 已移除 dockingImage 状态
   const [workflowState, setWorkflowState] = useState<any>(null)
   const [innovationLevel, setInnovationLevel] = useState(5)
 
@@ -42,7 +41,7 @@ export default function App() {
     setDecisionPocket(null)
     setDecisionCompound(null)
     setMoleculeImage(null)
-    setDockingImage(null)
+    // 已移除 dockingImage 状态重置
     setWorkflowState(null)
 
     try {
@@ -140,26 +139,15 @@ export default function App() {
       addLog(7, '日志', JSON.stringify(mi))
       if (mi.success) setMoleculeImage(mi.image_data)
 
-      // STEP 9: 对接可视化
+      // 已移除对接可视化步骤，直接完成流程
       setStep(8)
-      addLog(8, '状态', '生成蛋白-配体对接图…')
-      const di = await api.generateDockingImage(
-        modelPath,
-        cd.optimized_smiles,
-        pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center
-      )
-      addLog(8, '日志', JSON.stringify(di))
-      if (di.success) setDockingImage(di.image_data)
-
-      // STEP 10: 完成
-      setStep(10)
-      addLog(10, '状态', '流程全部完成！')
+      addLog(8, '状态', '流程全部完成！')
     } catch (err: any) {
       addLog(step || 1, '状态', `🚨 出错：${err.message}`)
     }
   }
 
-  const active = step > 0 && step < 10
+  const active = step > 0 && step < 8
 
   return (
     <>
@@ -276,13 +264,13 @@ export default function App() {
                 onChange={setInnovationLevel}
               />
             </>
-          ) : step === 10 ? (
+          ) : step === 8 ? (
             <>
               <WorkflowStepper
                 currentStep={step}
                 stepLabels={[
                   '靶点识别','UniProt检索','结构获取','口袋预测',
-                  '配体获取','化合物优化','分子图像','对接可视化','结果保存','完成'
+                  '配体获取','化合物优化','分子图像','结果保存','完成'
                 ]}
               />
               <ResultPanel
@@ -293,7 +281,6 @@ export default function App() {
                 optimizedSmiles={decisionCompound?.optimized_smiles}
                 explanation={decisionCompound?.explanation}
                 moleculeImage={moleculeImage}
-                dockingImage={dockingImage}
                 structurePath={workflowState?.structure_path}
               />
             </>
@@ -303,7 +290,7 @@ export default function App() {
                 currentStep={step}
                 stepLabels={[
                   '靶点识别','UniProt检索','结构获取','口袋预测',
-                  '配体获取','化合物优化','分子图像','对接可视化','结果保存','完成'
+                  '配体获取','化合物优化','分子图像','结果保存','完成'
                 ]}
               />
               <StatusPanel logs={logs.filter(l => l.category === '状态' && l.step === step)} />

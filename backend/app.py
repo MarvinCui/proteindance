@@ -72,12 +72,10 @@ class SelectCompoundRequest(BaseModel):
 class MoleculeImageRequest(BaseModel):
     smiles: str
 
-
-class DockingImageRequest(BaseModel):
-    protein_path: str
-    ligand_smiles: str
-    pocket_center: Any
-
+ # class DockingImageRequest(BaseModel):
+ #     protein_path: str
+ #     ligand_smiles: str
+ #     pocket_center: Any
 
 class CompleteWorkflowRequest(BaseModel):
     disease: str
@@ -187,16 +185,16 @@ async def molecule_image(req: MoleculeImageRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/docking-image")
-async def docking_image(req: DockingImageRequest):
-    if not (req.protein_path and req.ligand_smiles and req.pocket_center):
-        raise HTTPException(status_code=400, detail="缺少 docking 所需参数")
-    try:
-        return services_func.DrugDiscoveryAPI.generate_docking_image(
-            req.protein_path, req.ligand_smiles, req.pocket_center
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.post("/api/docking-image")
+# async def docking_image(req: DockingImageRequest):
+#     if not (req.protein_path and req.ligand_smiles and req.pocket_center):
+#         raise HTTPException(status_code=400, detail="缺少 docking 所需参数")
+#     try:
+#         return services_func.DrugDiscoveryAPI.generate_docking_image(
+#             req.protein_path, req.ligand_smiles, req.pocket_center
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/complete-workflow")

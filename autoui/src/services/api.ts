@@ -57,13 +57,13 @@ export interface ApiResponse<T> {
     return postJson<{ image_data: string }>('/molecule-image', { smiles });
   }
   
-  export async function generateDockingImage(
-    protein_path: string,
-    ligand_smiles: string,
-    pocket_center: [number, number, number]
-  ) {
-    return postJson<{ image_data: string }>('/docking-image', { protein_path, ligand_smiles, pocket_center });
-  }
+//  export async function generateDockingImage(
+//    protein_path: string,
+//    ligand_smiles: string,
+//    pocket_center: [number, number, number]
+//  ) {
+//    return postJson<{ image_data: string }>('/docking-image', { protein_path, ligand_smiles, pocket_center });
+//  }
   
   export async function completeWorkflow(disease: string, selected_targets?: string[]) {
     return postJson<any>('/complete-workflow', { disease, selected_targets });
