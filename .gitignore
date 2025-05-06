@@ -6,3 +6,7 @@
 out
 gen
 .DS_Store
+.history/
+.idea/
+__pycache__/
+*.py[cod]

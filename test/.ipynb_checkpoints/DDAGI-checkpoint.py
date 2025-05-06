@@ -78,7 +78,10 @@ except ImportError:
 from chembl_webresource_client.new_client import new_client
 from Bio.PDB import PDBList
 import traceback
-import openai             # pip install openai>=1.2.4
+import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=OPENAI_API_KEY)             # pip install openai>=1.2.4
 import datetime
 import platform
 import shutil
@@ -388,8 +391,8 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 OPENAI_API_BASE = "https://api.siliconflow.cn/v1"   # DeepSeek Chat 兼容 OpenAI
 OPENAI_API_KEY  = "sk-kiuwnsdtlpclsjguvgajhuqdgowypqhmgozbxhhnenucutdp"  # TODO: ←← 在此填入 DeepSeek API Key
 
-openai.api_base = OPENAI_API_BASE
-openai.api_key  = OPENAI_API_KEY
+# TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url=OPENAI_API_BASE)'
+# openai.api_base = OPENAI_API_BASE
 
 HEADERS_JSON = {"Content-Type": "application/json"}
 UNIPROT_REST = "https://rest.uniprot.org"
@@ -451,13 +454,11 @@ Tuple[选择的索引（从0开始）, 决策解释]
 
         # 调用AI API
         show_spinner(2, "AI思考中")
-        rsp = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-        )
+        rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2)
 
-        text = rsp["choices"][0]["message"]["content"].strip()
+        text = rsp.choices[0].message.content.strip()
 
         # 解析选择和解释
         selection_match = re.search(r'选择:\s*(\d+)', text, re.IGNORECASE)
@@ -525,14 +526,12 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 
         # 调用AI API
         show_spinner(4, "AI分析分子结构中")
-        rsp = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=1000
-        )
+        rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=1000)
 
-        text = rsp["choices"][0]["message"]["content"].strip()
+        text = rsp.choices[0].message.content.strip()
 
         # 解析回复
         selected_idx_match = re.search(r'选择SMILES编号:\s*(\d+)', text, re.IGNORECASE)
@@ -610,14 +609,12 @@ def ai_explain_results(workflow_state: Dict[str, Any]) -> str:
             """
 
         show_spinner(3, "生成科学解释中")
-        rsp = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=1024
-        )
+        rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        max_tokens=1024)
 
-        explanation = rsp["choices"][0]["message"]["content"].strip()
+        explanation = rsp.choices[0].message.content.strip()
         # 移除可能的Markdown语法
         explanation = explanation.replace('#', '').replace('*', '').replace('_', '')
         return explanation
@@ -712,13 +709,11 @@ def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
 
     prompt = f"列举与{disease_chinese}相关、可作为药物靶点的蛋白基因符号（仅返回{top_k}个以内，不要解释）。"
 
-    rsp = openai.ChatCompletion.create(
-        model="deepseek-ai/DeepSeek-V3",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-    )
+    rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.2)
 
-    text = rsp["choices"][0]["message"]["content"]
+    text = rsp.choices[0].message.content
 
     # 粗略解析：去掉序号等，仅提取字母/数字/下划线
     lines = [l.strip() for l in text.splitlines() if l.strip()]
@@ -1325,13 +1320,11 @@ Returns:
         # 生成额外的靶点解释
         prompt = f"请简要介绍{gene_symbol}蛋白在{disease}疾病中的作用机制，包括它的功能和为什么是有价值的药物靶点（80-120字）"
         try:
-            rsp = openai.ChatCompletion.create(
-                model="deepseek-ai/DeepSeek-V3",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=300
-            )
-            target_explanation = rsp["choices"][0]["message"]["content"].strip()
+            rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=300)
+            target_explanation = rsp.choices[0].message.content.strip()
             print_explanation_box(f"关于 {gene_symbol} 靶点", target_explanation)
         except Exception as e:
             logger.error(f"获取额外靶点解释失败: {str(e)}")
@@ -1530,13 +1523,11 @@ Returns:
         """
 
     try:
-        rsp = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=300
-        )
-        pocket_explanation = rsp["choices"][0]["message"]["content"].strip()
+        rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=300)
+        pocket_explanation = rsp.choices[0].message.content.strip()
         print_explanation_box("口袋药物化学分析", pocket_explanation)
     except Exception as e:
         logger.error(f"获取口袋解释失败: {str(e)}")

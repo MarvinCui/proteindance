@@ -1,5 +1,7 @@
 from typing import List, Tuple
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 from ..core.config import settings
 from ..models.workflow import workflow_state
 
@@ -14,13 +16,11 @@ class AIService:
         else:
             prompt = f"""列举与{disease}相关的创新性靶点，优先考虑新发现的信号通路（创新策略）。"""
 
-        response = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2 + (innovation_level * 0.05)  # Adjust creativity based on innovation level
-        )
-        
-        text = response["choices"][0]["message"]["content"]
+        response = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2 + (innovation_level * 0.05)  # Adjust creativity based on innovation level)
+
+        text = response.choices[0].message.content
         lines = [l.strip() for l in text.splitlines() if l.strip()]
         proteins = []
         for l in lines:
@@ -59,14 +59,12 @@ class AIService:
 优化解释: [100-200字解释]
         """
 
-        response = openai.ChatCompletion.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=1000
-        )
+        response = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=1000)
 
-        text = response["choices"][0]["message"]["content"].strip()
+        text = response.choices[0].message.content.strip()
         selected_idx_match = re.search(r'选择SMILES编号:\s*(\d+)', text, re.IGNORECASE)
         selected_smiles_match = re.search(r'选择的SMILES:\s*(.*?)(?:\n|$)', text, re.DOTALL)
         reason_match = re.search(r'选择理由:\s*(.*?)(?:\n|$)', text, re.DOTALL)

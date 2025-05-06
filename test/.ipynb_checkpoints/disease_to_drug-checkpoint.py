@@ -78,7 +78,10 @@ from Bio.PDB import PDBList
 
 import re
 
-import openai             # pip install openai>=1.2.4
+import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=OPENAI_API_KEY)             # pip install openai>=1.2.4
 
 # ------------------------------------------------------------------
 
@@ -101,9 +104,9 @@ TMP_DIR = Path(tempfile.gettempdir()) / "drug_flow"
 
 TMP_DIR.mkdir(exist_ok=True)
 
-openai.api_base = OPENAI_API_BASE
+# TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url=OPENAI_API_BASE)'
+# openai.api_base = OPENAI_API_BASE
 
-openai.api_key  = OPENAI_API_KEY
 
 HEADERS_JSON = {"Content-Type": "application/json"}
 
@@ -149,17 +152,13 @@ def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
 
     prompt = f"列举与{disease_chinese}相关、可作为药物靶点的蛋白基因符号（仅返回{top_k}个以内，不要解释）。"
 
-    rsp = openai.ChatCompletion.create(
+    rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
+    
+    messages=[{"role": "user", "content": prompt}],
+    
+    temperature=0.2)
 
-        model="deepseek-ai/DeepSeek-V3",
-
-        messages=[{"role": "user", "content": prompt}],
-
-        temperature=0.2,
-
-    )
-
-    text = rsp["choices"][0]["message"]["content"]
+    text = rsp.choices[0].message.content
 
     # 粗略解析：去掉序号等，仅提取字母/数字/下划线
 
