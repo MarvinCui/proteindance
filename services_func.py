@@ -300,99 +300,6 @@ def display_molecule_ascii(smiles: str):
         logger.error(traceback.format_exc())  # 记录完整错误信息
 
 
-def generate_docking_image(protein_path: str, ligand_smiles: str, pocket_center: tuple,
-                          output_path: Path = None):
-    """生成蛋白质-配体对接可视化图像"""
-    try:
-        if not HAS_PY3DMOL:
-            print_warning("未安装py3Dmol，无法生成对接可视化。")
-            return None
-
-        # 检查是否在Jupyter环境中
-        in_jupyter = False
-        try:
-            from IPython import get_ipython
-            in_jupyter = get_ipython() is not None
-        except (ImportError, NameError):
-            pass
-
-        # 创建配体3D结构
-        mol = Chem.MolFromSmiles(ligand_smiles)
-        if not mol:
-            print_error(f"无法从SMILES生成分子: {ligand_smiles}")
-            return None
-
-        mol = Chem.AddHs(mol)
-        AllChem.EmbedMolecule(mol, AllChem.ETKDG())
-        AllChem.UFFOptimizeMolecule(mol)
-
-        # 保存为临时PDB文件
-        ligand_pdb = TMP_DIR / "temp_ligand.pdb"
-        Chem.MolToPDBFile(mol, str(ligand_pdb))
-
-        # 在非Jupyter环境中提供替代方案
-        if not in_jupyter:
-            print_warning("不在交互式Jupyter环境中，生成替代输出...")
-            if output_path is None:
-                output_path = TMP_DIR / f"docking_info_{int(time.time())}.txt"
-
-            with open(output_path, 'w') as f:
-                f.write(f"蛋白质文件: {protein_path}\n")
-                f.write(f"配体SMILES: {ligand_smiles}\n")
-                f.write(f"结合口袋坐标: {pocket_center}\n")
-
-            print_success(f"已保存对接信息到: {output_path}")
-            return str(output_path)
-
-        # 以下代码只在Jupyter环境中执行
-        print_info("在Jupyter环境中创建交互式可视化...")
-
-        # 在Jupyter中以单独的单元格执行以下代码
-        print("请在Jupyter笔记本的新单元格中执行以下代码以可视化对接结果:")
-        print(f"""
-import py3Dmol
-
-# 创建可视化
-view = py3Dmol.view(width=800, height=600)
-
-# 加载蛋白质
-              with open(r"{protein_path}", 'r') as f:
-protein_data = f.read()
-view.addModel(protein_data, 'pdb')
-
-# 加载配体
-              with open(r"{ligand_pdb}", 'r') as f:
-ligand_data = f.read()
-view.addModel(ligand_data, 'pdb')
-
-# 设置样式
-view.setStyle({{'model': 0}}, {{'cartoon': {{'color': 'spectrum'}}}})
-view.setStyle({{'model': 1}}, {{'stick': {{'colorscheme': 'cyanCarbon', 'radius': 0.2}}}})
-
-# 突出显示口袋
-              x, y, z = {pocket_center}
-view.addSphere({{'center': {{'x': x, 'y': y, 'z': z}}, 'radius': 3.0, 'color': 'yellow', 'opacity': 0.5}})
-
-# 设置视图
-view.zoomTo()
-view.show()
-              """)
-
-        # 创建伪输出文件
-        if output_path is None:
-            output_path = TMP_DIR / f"docking_{int(time.time())}.txt"
-
-        with open(output_path, 'w') as f:
-            f.write("对接可视化代码已生成，请在Jupyter笔记本中执行。\n")
-
-        return str(output_path)
-
-    except Exception as e:
-        print_error(f"生成对接可视化失败: {str(e)}")
-        logger.error(f"生成对接可视化失败: {traceback.format_exc()}")
-        return None
-
-
 # ------------------------------------------------------------------
 # 全局配置
 # ------------------------------------------------------------------
@@ -526,7 +433,7 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
             {chr(10).join([f"{i + 1}. {smi}" for i, smi in enumerate(smiles_list)])}
 
 请执行以下任务:
-1. 选择一个最佳先导化合物（给出SMILES和编号）
+1. 选择一个最佳先导化合物（注意不要选择SMILES中同时有两个分子的（即通过点号分隔的药物），然后给出SMILES和编号）
 2. 解释为什么选择该化合物（考虑结构特点、药效团、药物化学性质等）
 3. 对该化合物进行结构优化，生成一个新的改进版SMILES
 4. 解释你做的修饰如何提高其作为药物的潜力
@@ -540,7 +447,7 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 - 不要添加复杂或大型的官能团
 - 避免引入复杂环系统或长链结构
 
-请确保修改后的SMILES代表一个合理的、小分子药物大小的化合物。
+请确保修改后的SMILES代表一个合理的、小分子药物大小的化合物。检查优化后的SMILES是否有任何语法错误，并确认分子结构的合理性。
             """
 
         # 调用AI API
@@ -580,28 +487,132 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 
         optimization_explanation = optimization_match.group(1).strip() if optimization_match else "未提供优化解释"
 
-        # 验证SMILES有效性
-        mol = Chem.MolFromSmiles(optimized_smiles)
-        if not mol:
-            print_warning(f"AI生成的优化SMILES无效，将使用原始选择的SMILES")
-            optimized_smiles = selected_smiles
-        else:
-            # 增加药物性质验证
+        # 强化SMILES验证和优化
+        for _ in range(3):  # 最多尝试3次验证和修正
+            # 验证SMILES有效性
+            mol = Chem.MolFromSmiles(optimized_smiles)
+            if not mol:
+                print_warning(f"AI生成的优化SMILES无效，尝试修复...")
+
+                # 调用AI再次修复SMILES
+                repair_prompt = f"""
+以下SMILES字符串有语法错误，无法被RDKit解析。请修复它，保持分子的基本结构不变:
+
+无效SMILES: {optimized_smiles}
+
+原始正确SMILES: {selected_smiles}
+
+请提供修复后的有效SMILES，不要添加任何解释，只返回修复的SMILES字符串。确保修复后的SMILES保持原分子的主要特性和官能团。
+                """
+
+                repair_response = client.chat.completions.create(
+                    model="deepseek-ai/DeepSeek-V3",
+                    messages=[{"role": "user", "content": repair_prompt}],
+                    temperature=0.2,
+                    max_tokens=200
+                )
+
+                fixed_smiles = repair_response.choices[0].message.content.strip()
+
+                # 检查修复的SMILES是否有效
+                fixed_mol = Chem.MolFromSmiles(fixed_smiles)
+                if fixed_mol:
+                    print_success(f"SMILES已修复")
+                    optimized_smiles = fixed_smiles
+                    mol = fixed_mol
+                else:
+                    print_warning(f"无法修复SMILES，将使用原始选择的SMILES")
+                    optimized_smiles = selected_smiles
+                    break
+
+            # 检查药物化学属性
+            property_issues = []
+
+            # 分子量检查
             mw = Descriptors.MolWt(mol)
             if mw > 500:
-                print_warning(f"AI优化的分子过大 (MW = {mw:.1f})，将使用原始选择的SMILES")
-                optimized_smiles = selected_smiles
+                property_issues.append(f"分子量过高 (MW = {mw:.1f} > 500)")
 
-            # 检查其他基本药物化学属性
+            # LogP检查
             log_p = Descriptors.MolLogP(mol)
             if log_p > 5.0:
-                print_warning(f"AI优化的分子LogP过高 (LogP = {log_p:.1f})，将使用原始选择的SMILES")
-                optimized_smiles = selected_smiles
+                property_issues.append(f"LogP过高 (LogP = {log_p:.1f} > 5.0)")
 
-            # 检查原子数量，防止生成巨大分子
+            # 氢键供体检查
+            hbd = Lipinski.NumHDonors(mol)
+            if hbd > 5:
+                property_issues.append(f"氢键供体过多 (HBD = {hbd} > 5)")
+
+            # 氢键受体检查
+            hba = Lipinski.NumHAcceptors(mol)
+            if hba > 10:
+                property_issues.append(f"氢键受体过多 (HBA = {hba} > 10)")
+
+            # 原子数量检查
             if mol.GetNumAtoms() > 50:
-                print_warning(f"AI优化的分子原子数过多 (Atoms = {mol.GetNumAtoms()})，将使用原始选择的SMILES")
-                optimized_smiles = selected_smiles
+                property_issues.append(f"原子数过多 (Atoms = {mol.GetNumAtoms()} > 50)")
+
+            # 如果存在问题，尝试修复
+            if property_issues:
+                issues_text = ", ".join(property_issues)
+                print_warning(f"优化的分子存在药物化学问题: {issues_text}，尝试修复...")
+
+                # 调用AI修复药物化学属性
+                fix_props_prompt = f"""
+我优化的分子存在以下药物化学问题:
+                    {issues_text}
+
+                    原始SMILES: {selected_smiles}
+                    有问题的SMILES: {optimized_smiles}
+
+请修改分子结构，解决上述问题，同时保持分子的核心骨架和关键官能团。必须严格遵守:
+- 分子量不超过500道尔顿
+- LogP不超过5.0
+- 氢键受体不超过10个
+- 氢键供体不超过5个
+- 不添加复杂环系统
+- 如果SMILES是两个分子（即中间用点号 . 分隔），那么保留是真实药物分子的那一条，剩余的舍去
+- 尽量简化结构
+
+只返回修复后的SMILES，不要添加任何解释。
+                    """
+
+                fix_response = client.chat.completions.create(
+                    model="deepseek-ai/DeepSeek-R1",
+                    messages=[{"role": "user", "content": fix_props_prompt}],
+                    temperature=0.2,
+                    max_tokens=200
+                )
+
+                fixed_props_smiles = fix_response.choices[0].message.content.strip()
+
+                # 验证修复后的SMILES
+                fixed_props_mol = Chem.MolFromSmiles(fixed_props_smiles)
+                if fixed_props_mol:
+                    # 再次检查药物化学性质
+                    new_mw = Descriptors.MolWt(fixed_props_mol)
+                    new_logp = Descriptors.MolLogP(fixed_props_mol)
+                    new_hbd = Lipinski.NumHDonors(fixed_props_mol)
+                    new_hba = Lipinski.NumHAcceptors(fixed_props_mol)
+
+                    if (new_mw <= 500 and new_logp <= 5.0 and new_hbd <= 5 and new_hba <= 10):
+                        print_success(f"药物化学性质已修复 (MW: {new_mw:.1f}, LogP: {new_logp:.1f}, HBD: {new_hbd}, HBA: {new_hba})")
+                        optimized_smiles = fixed_props_smiles
+
+                        # 更新优化解释
+                        optimization_explanation += f"\n\n改进了药物化学性质 (MW: {new_mw:.1f}, LogP: {new_logp:.1f}, HBD: {new_hbd}, HBA: {new_hba})，增加了药物可能性。"
+                        break
+                    else:
+                        print_warning(f"修复后仍有药物化学问题，将再次尝试")
+                        optimized_smiles = fixed_props_smiles  # 继续循环尝试修复
+                else:
+                    print_warning(f"修复后的SMILES无效，将使用原始选择的SMILES")
+                    optimized_smiles = selected_smiles
+                    break
+            else:
+                # 没有问题，退出循环
+                print_success(f"优化的分子符合所有药物化学要求")
+                break
 
         # 组合解释
         explanation = f"选择理由: {reason}\n\n优化解释: {optimization_explanation}"
@@ -647,9 +658,9 @@ def ai_explain_results(workflow_state: Dict[str, Any]) -> str:
 
         show_spinner(3, "生成科学解释中")
         rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=1024)
+                                             messages=[{"role": "user", "content": prompt}],
+                                             temperature=0.7,
+                                             max_tokens=1024)
 
         explanation = rsp.choices[0].message.content.strip()
         # 移除可能的Markdown语法
@@ -741,27 +752,88 @@ def safe_execute(func, error_msg, step_name=None, recoverable=True, max_retries=
 # 1. DeepSeek Chat 获得疾病→蛋白靶点
 # ------------------------------------------------------------------
 
-def get_targets_from_deepseek(disease_chinese: str, top_k=10) -> List[str]:
-    """调用 DeepSeek Chat，返回蛋白候选名列表。"""
+def get_targets_from_deepseek(disease_chinese: str, top_k=10, max_attempts=3) -> List[str]:
+    """调用 DeepSeek Chat，返回蛋白候选名列表，增强型错误处理版本"""
 
-    prompt = f"列举与{disease_chinese}相关、可作为药物靶点的蛋白基因符号（仅返回{top_k}个以内，不要解释）。"
+    attempt = 0
+    valid_proteins = []
 
-    rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.2)
+    while attempt < max_attempts and not valid_proteins:
+        attempt += 1
 
-    text = rsp.choices[0].message.content
+        if attempt == 1:
+            prompt = f"列举与{disease_chinese}相关、可作为药物靶点的蛋白基因符号（仅返回{top_k}个以内，不要解释）。"
+        else:
+            prompt = f"""之前未能获取到有效的蛋白基因符号。请重新列举与{disease_chinese}相关的蛋白基因符号。
 
-    # 粗略解析：去掉序号等，仅提取字母/数字/下划线
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
-    proteins = []
-    for l in lines:
-        # 只保留 A-Z, a-z, 0-9, _ 及 -，去掉其它符号（逗号、句号等）
-        token = re.sub(r"[^A-Za-z0-9_-]", "", l.split()[0])
-        if 2 <= len(token) <= 12:
-            proteins.append(token.upper())
+要求:
+1. 严格使用标准蛋白质/基因命名规范（如EGFR, TP53, BRAF等）
+2. 每行一个基因符号
+3. 不要包含数字作为单独的条目
+                4. 返回{top_k}个最相关的靶点
+5. 确保每个符号是真实的蛋白质或基因
+6. 不要添加解释，只返回基因符号列表
+                """
 
-    return proteins[:top_k]
+        print_info(f"正在尝试获取蛋白靶点（尝试 {attempt}/{max_attempts}）...")
+
+        try:
+            rsp = client.chat.completions.create(
+                model="deepseek-ai/DeepSeek-V3",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2
+            )
+
+            text = rsp.choices[0].message.content
+
+            # 解析出蛋白列表
+            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            candidates = []
+
+            for l in lines:
+                # 提取可能的蛋白/基因名
+                # 先尝试获取行首的词（可能有序号）
+                parts = l.split(None, 1)
+                token = parts[0]
+
+                # 去除序号如 "1." 或 "1)"
+                if re.match(r'^\d+[.)]', token):
+                    if len(parts) > 1:
+                        token = parts[1].split()[0]
+                    else:
+                        continue
+
+                # 清理标点符号，只保留字母、数字和特定标点
+                token = re.sub(r"[^A-Za-z0-9_-]", "", token)
+
+                # 验证格式 - 至少有一个字母，长度在合理范围内
+                if re.search(r'[A-Za-z]', token) and 2 <= len(token) <= 12:
+                    candidates.append(token.upper())
+
+            # 验证结果 - 确保不是纯数字且符合基因命名规范
+            valid_proteins = [p for p in candidates if not p.isdigit() and re.match(r'^[A-Z][A-Z0-9_-]*$', p)]
+
+            # 如果获取到有效结果，返回
+            if valid_proteins:
+                if attempt > 1:
+                    print_success(f"在第{attempt}次尝试后成功获取有效的蛋白靶点")
+                return valid_proteins[:top_k]
+            else:
+                print_warning(f"获取到的结果无效，将重试（{attempt}/{max_attempts}）")
+
+        except Exception as e:
+            logger.error(f"获取靶点失败 (尝试 {attempt}/{max_attempts}): {str(e)}")
+            print_warning(f"API调用出现错误: {str(e)[:100]}...")
+            time.sleep(2)  # 短暂延迟后重试
+
+    # 如果多次尝试后仍无有效结果，返回一些常见靶点作为备选
+    if not valid_proteins:
+        print_warning("无法获取有效的蛋白靶点，使用常见靶点作为备选")
+        default_proteins = ["EGFR", "TP53", "BRAF", "HER2", "VEGF", "TNF", "IL6", "ACE2", "PARP1", "KRAS"]
+        return default_proteins[:top_k]
+
+    return valid_proteins[:top_k]
+
 
 # ------------------------------------------------------------------
 # 2. UniProt → 获取 Accession + 结构条目
@@ -1028,43 +1100,47 @@ def run_dogsite_api(pdb_path: Path) -> List[Dict]:
 
 def fetch_chembl_smiles(uniprot_acc: str, max_hits: int = 10) -> List[str]:
     """
-通过 ChEMBL REST API 拉取该 UniProt 蛋白的 IC50 抑制化合物 SMILES。
+通过 ChEMBL REST API 拉取该 UniProt 蛋白的 IC50 抑制化合物 SMILES，
+直接访问 /activity 而不是 /activity.json。
     """
     print_info(f"正在从ChEMBL数据库查询与UniProt:{uniprot_acc}相关的活性化合物...")
 
-    # 1) 根据 UniProt Accession 找对应的 ChEMBL Target ID
-    target = new_client.target
-    res = target.filter(target_components__accession=uniprot_acc).only(
-        ["target_chembl_id"]
-    )
-
+    # 1) 先用 chembl_webresource_client 或 requests 获取 target_chembl_id
+    # （假设你保留原来的 new_client 调用，这里只示例 activity 部分）
+    from chembl_webresource_client.new_client import new_client
+    res = new_client.target.filter(
+        target_components__accession=uniprot_acc
+    ).only(["target_chembl_id"])
     if not res:
         print_warning(f"ChEMBL 中未找到 UniProt {uniprot_acc} 对应的蛋白靶点记录")
         return []
-
     chembl_id = res[0]["target_chembl_id"]
     print_info(f"找到ChEMBL靶点: {chembl_id}")
 
-    # 2) 拉活性数据，取前 max_hits 条 IC50
-    print_info(f"正在检索IC50活性数据...")
+    # 2) 用 requests 调用 /activity 接口
+    print_info("正在检索IC50活性数据 (通过 /activity 接口)...")
     show_spinner(2, "检索活性数据")
+    url = "https://www.ebi.ac.uk/chembl/api/data/activity"
+    params = {
+        "format": "json",
+        "target_chembl_id": chembl_id,
+        "standard_type": "IC50",
+        "order_by": "standard_value",
+        "limit": max_hits,
+        "offset": 0,
+    }
+    headers = {"Accept": "application/json"}
+    resp = requests.get(url, params=params, headers=headers)
+    resp.raise_for_status()
+    data = resp.json()
 
-    activity = new_client.activity.filter(
-            target_chembl_id=chembl_id,
-            standard_type="IC50"
-        ).only([
-            "molecule_chembl_id",
-            "canonical_smiles",
-            "standard_value"
-        ]).order_by("standard_value")[: max_hits]
-
+    # 3) 提取 SMILES
     smiles = []
-    for act in activity:
-        smi = act.get("canonical_smiles")
+    for rec in data.get("activities", []):
+        smi = rec.get("canonical_smiles")
         if smi:
             smiles.append(smi)
-
-    smiles = list(dict.fromkeys(smiles))  # 去重，保顺序
+    smiles = list(dict.fromkeys(smiles))  # 去重但保留顺序
 
     if smiles:
         print_success(f"成功获取 {len(smiles)} 条活性化合物SMILES")
@@ -1136,15 +1212,18 @@ class DrugDiscoveryAPI:
     def get_structure_sources(uniprot_acc: str) -> Dict:
         """获取结构来源"""
         try:
-            # 检查AlphaFold是否可用
-            af_available = download_alphafold(uniprot_acc, dest_dir=TMP_DIR / "temp_check")
-
             # 获取PDB结构
             pdb_ids = get_pdb_ids_for_uniprot(uniprot_acc)
 
+            # 只有当没有PDB结构时才检查AlphaFold是否可用
+            af_available = False
+            if not pdb_ids:
+                # 检查AlphaFold是否可用
+                af_available = download_alphafold(uniprot_acc, dest_dir=TMP_DIR / "temp_check") is not None
+
             return {
                 "success": True,
-                "alphafold_available": af_available is not None,
+                "alphafold_available": af_available,
                 "pdb_ids": pdb_ids
             }
         except Exception as e:
@@ -1260,52 +1339,6 @@ class DrugDiscoveryAPI:
             }
 
     @staticmethod
-    def generate_docking_image(protein_path: str, ligand_smiles: str, pocket_center: tuple) -> Dict:
-        """生成对接可视化"""
-        try:
-            image_path = generate_docking_image(protein_path, ligand_smiles, pocket_center)
-
-            if not image_path:
-                return {
-                    "success": False,
-                    "error": "生成对接图像失败，可能缺少依赖库"
-                }
-
-            # 转换为base64
-            with open(image_path, "rb") as f:
-                image_data = base64.b64encode(f.read()).decode("utf-8")
-            print("docking image"+image_data)
-            return {
-                "success": True,
-                "image_path": image_path,
-                "image_data": image_data
-            }
-        except Exception as e:
-            logger.error(f"生成对接可视化失败: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @staticmethod
-    def complete_workflow(disease: str, selected_targets: List[str] = None) -> Dict:
-        """完整工作流"""
-        try:
-            # 这里可以调用main函数的自动化版本
-            result = automated_workflow(disease, selected_targets)
-            return {
-                "success": True,
-                **result
-            }
-        except Exception as e:
-            logger.error(f"工作流执行失败: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "traceback": traceback.format_exc()
-            }
-
-    @staticmethod
     def get_decision_explanations() -> Dict:
         """获取所有决策的解释"""
         return {
@@ -1339,6 +1372,7 @@ Returns:
     print_step_start("蛋白靶点识别", workflow_state["current_step"], workflow_state["total_steps"])
 
     if not selected_targets:
+
         print_info(f"正在分析疾病「{disease}」的潜在药物靶点...")
         proteins = safe_execute(
             lambda: get_targets_from_deepseek(disease),
@@ -1346,12 +1380,36 @@ Returns:
             "get_targets",
             recoverable=False
         )
+
         if not proteins:
             raise WorkflowError("无法获取蛋白靶点", "get_targets", False)
+
+        # 检查获取的蛋白靶点是否有效
+        invalid_proteins = [p for p in proteins if p.isdigit() or len(p) < 2]
+        if invalid_proteins:
+            print_warning(f"检测到可能无效的蛋白靶点: {', '.join(invalid_proteins)}")
+            print_info("正在重新获取更准确的靶点信息...")
+
+            # 手动干预选项
+            print_subsection("选择操作")
+            print_options(["尝试重新获取靶点", "手动输入靶点", "继续使用当前结果"], "请选择操作:")
+            choice = input("请输入选项编号 [1-3]: ").strip()
+
+            if choice == "1" or not choice:
+                # 重新获取，指定要进行多次尝试
+                proteins = get_targets_from_deepseek(disease, top_k=10, max_attempts=3)
+            elif choice == "2":
+                # 手动输入
+                manual_input = input("请输入靶点基因符号（多个用逗号分隔）: ").strip()
+                proteins = [p.strip().upper() for p in manual_input.split(",") if p.strip()]
+                if not proteins:
+                    raise WorkflowError("未提供有效的蛋白靶点", "get_targets", False)
+            # 默认为选项3，继续使用当前结果
 
         # 打印靶点列表供参考
         print_subsection("潜在靶点列表")
         print_options(proteins, "系统找到以下与疾病相关的蛋白靶点")
+
 
         context = f"我们正在为疾病'{disease}'寻找最佳药物靶点。理想的靶点应该在该疾病的发病机制中扮演关键角色，并且能够被药物作用。"
         idx, explanation = ai_make_decision(proteins, context, "哪个蛋白靶点最适合作为药物开发目标?")
@@ -1361,9 +1419,9 @@ Returns:
         prompt = f"请简要介绍{gene_symbol}蛋白在{disease}疾病中的作用机制，包括它的功能和为什么是有价值的药物靶点（80-120字）"
         try:
             rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=300)
+                                                 messages=[{"role": "user", "content": prompt}],
+                                                 temperature=0.3,
+                                                 max_tokens=300)
             target_explanation = rsp.choices[0].message.content.strip()
             print_explanation_box(f"关于 {gene_symbol} 靶点", target_explanation)
         except Exception as e:
@@ -1449,26 +1507,15 @@ Returns:
         logger.info(f"选定UniProt ID: {acc}")
 
         # 3. 获取结构
-        # 先尝试下载AlphaFold预测结构
-        print_info(f"尝试获取AlphaFold预测结构...")
-        struct_path = safe_execute(
-            lambda: download_alphafold(acc),
-            "AlphaFold下载失败",
-            "download_alphafold"
+        # 先尝试获取PDB实验结构 (优先使用PDB数据库文件而非AlphaFold预测文件)
+        print_info(f"优先获取PDB实验结构...")
+        pdb_ids = safe_execute(
+            lambda: get_pdb_ids_for_uniprot(acc),
+            "获取PDB ID失败",
+            "get_pdb_ids"
         )
 
-        # 如果AlphaFold结构不可用，改用PDB
-        if not struct_path:
-            print_warning("AlphaFold结构不可用，尝试获取PDB实验结构...")
-            pdb_ids = safe_execute(
-                lambda: get_pdb_ids_for_uniprot(acc),
-                "获取PDB ID失败",
-                "get_pdb_ids"
-            )
-
-            if not pdb_ids:
-                raise WorkflowError("无可用结构", "get_structure", False)
-
+        if pdb_ids:
             print_subsection("可用PDB结构")
             print_options(pdb_ids[:5], "找到以下PDB实验结构")
 
@@ -1494,6 +1541,18 @@ Returns:
             )
             print_success(f"成功获取PDB实验结构: {struct_path.name}")
         else:
+            # 只有在没有PDB结构时才尝试AlphaFold
+            print_warning("未找到PDB实验结构，尝试获取AlphaFold预测结构...")
+            struct_path = safe_execute(
+                lambda: download_alphafold(acc),
+                "AlphaFold下载失败",
+                "download_alphafold",
+                recoverable=False
+            )
+
+            if not struct_path:
+                raise WorkflowError("无可用蛋白质结构", "get_structure", False)
+
             print_success(f"成功获取AlphaFold预测结构: {struct_path.name}")
 
         workflow_state["structure_path"] = struct_path
@@ -1532,7 +1591,7 @@ Returns:
     print_options(pk_choices, "系统预测出以下潜在药物结合口袋")
 
     # 让AI选择最佳口袋
-    context = f"我们需要为蛋白{gene_symbol} (UniProt: {workflow_state.get('uniprot_acc', 'Unknown')})选择最适合药物结合的口袋。理想的选择应该是得分高、在蛋白活性区域的口袋。"
+    context = f"我们需要为蛋白{gene_symbol} (UniProt: {workflow_state.get('uniprot_acc', 'Unknown')})选择最适合药物结合的口袋。理想的选择应该是得分高、在蛋白活性区域且可及性好的位点。"
     pk_idx, explanation = ai_make_decision(pk_choices, context, "哪个蛋白口袋最适合作为药物结合位点?")
 
     # 保存决策解释
@@ -1564,9 +1623,9 @@ Returns:
 
     try:
         rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-V3",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=300)
+                                             messages=[{"role": "user", "content": prompt}],
+                                             temperature=0.3,
+                                             max_tokens=300)
         pocket_explanation = rsp.choices[0].message.content.strip()
         print_explanation_box("口袋药物化学分析", pocket_explanation)
     except Exception as e:
@@ -1653,9 +1712,9 @@ Returns:
 
     print_step_complete("AI药物分子优化", workflow_state["current_step"], workflow_state["total_steps"])
 
-    # 6. 生成分子结构与对接可视化
+    # 6. 生成分子结构可视化 (只保留分子结构图的部分)
     workflow_state["current_step"] = 6
-    print_step_start("分子结构与对接可视化", workflow_state["current_step"], workflow_state["total_steps"])
+    print_step_start("分子结构可视化", workflow_state["current_step"], workflow_state["total_steps"])
 
     # 生成ASCII分子结构用于命令行显示
     print_info("生成ASCII分子结构...")
@@ -1676,26 +1735,7 @@ Returns:
     else:
         print_warning("无法生成分子结构图，继续执行...")
 
-    # 尝试生成对接可视化(如果py3Dmol可用)
-    print_info("尝试生成蛋白质-配体对接可视化...")
-    docking_image = None
-    if HAS_PY3DMOL:
-        docking_image = safe_execute(
-            lambda: generate_docking_image(str(struct_path), optimized_smiles, pocket_center),
-            "生成对接可视化失败",
-            "docking_image",
-            recoverable=True
-        )
-
-        workflow_state["docking_image"] = docking_image
-        if docking_image:
-            print_success(f"对接可视化图已保存至 {docking_image}")
-        else:
-            print_warning("无法生成对接可视化图像")
-    else:
-        print_warning("未安装py3Dmol，跳过对接可视化生成")
-
-    print_step_complete("分子结构与对接可视化", workflow_state["current_step"], workflow_state["total_steps"])
+    print_step_complete("分子结构可视化", workflow_state["current_step"], workflow_state["total_steps"])
 
     # 7. 保存结果文件
     workflow_state["current_step"] = 7
@@ -1774,17 +1814,6 @@ Returns:
         """
     print(summary_box)
 
-    # 提供后续操作建议
-    print_subsection("后续操作建议")
-    print(f"""您可以使用以下在线工具进行后续虚拟筛选:
-
-          {Colors.BLUE}1.{Colors.ENDC} SwissDock: http://www.swissdock.ch/
-          {Colors.BLUE}2.{Colors.ENDC} CB-Dock: http://cao.labshare.cn/cb-dock2/
-          {Colors.BLUE}3.{Colors.ENDC} PrankWeb: https://prankweb.cz/
-
-          使用口袋坐标 {Colors.CYAN}{pocket_center}{Colors.ENDC} 和生成的分子结构文件进行对接分析。
-          """)
-
     # 返回执行结果
     return {
         "disease": disease,
@@ -1796,7 +1825,6 @@ Returns:
         "selected_smiles": selected_smiles,
         "optimized_smiles": optimized_smiles,
         "molecule_image": workflow_state.get("molecule_image"),
-        "docking_image": workflow_state.get("docking_image"),
         "results_file": str(results_file),
         "output_dir": str(TMP_DIR),
         "explanation": explanation,

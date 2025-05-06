@@ -10,3 +10,4 @@ gen
 .idea/
 __pycache__/
 *.py[cod]
+drug_discovery.log
