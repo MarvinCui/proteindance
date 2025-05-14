@@ -27,3 +27,7 @@ services:
       - backend
 
 # （可选）网络、卷、机密管理等，按需补充
+
+networks:
+  default:
+    name: proteindance_net
