@@ -1,0 +1,33 @@
+# ─── 构建阶段 ───
+FROM node:18-alpine AS builder
+
+# 设置工作目录
+WORKDIR /app
+
+# 1) 先复制锁文件，保证依赖可复现
+COPY autoui/package.json     package.json
+COPY autoui/package-lock.json package-lock.json
+
+# 2) 安装前端所有依赖
+RUN npm ci
+
+# 3) 再把剩余源码都拷进来
+COPY autoui/ .
+
+# 4) 构建生产包，默认输出 dist/
+RUN npm run build
+
+# ─── 运行阶段 ───
+FROM nginx:alpine
+
+# （可选）删掉默认的欢迎页面
+RUN rm -rf /usr/share/nginx/html/*
+
+# 5) 把 builder 阶段产出的 dist/ 全部拷过来
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# 暴露标准 HTTP 80 端口
+EXPOSE 80
+
+# 6) Nginx 前台运行
+CMD ["nginx", "-g", "daemon off;"]

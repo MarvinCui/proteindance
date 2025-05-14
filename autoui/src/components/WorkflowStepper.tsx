@@ -7,7 +7,7 @@ interface Props {
 
 const stepLabels = [
   '靶点识别','UniProt检索','结构获取','口袋预测',
-  '配体获取','化合物优化','分子图像','对接可视化','结果保存','完成'
+  '配体获取','化合物优化','分子图像','完成','用户下载','人工分析'
 ]
 
 const containerVariants = {
