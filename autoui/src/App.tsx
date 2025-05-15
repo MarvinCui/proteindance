@@ -6,7 +6,7 @@ import LogPanel from './components/LogPanel'
 import HistoryPanel from './components/HistoryPanel'
 import InnovationSlider from './components/InnovationSlider'
 import * as api from './services/api'
-import ResultPanel from './components/ResultPanel.tsx'
+import ResultPanel from './components/ResultPanel'
 
 interface LogEntry {
   step: number
@@ -71,7 +71,7 @@ export default function App() {
       const uRes = await api.getUniprotEntries(td.selected_option)
       addLog(2, '日志', JSON.stringify(uRes))
       if (!uRes.success) throw new Error(uRes.error)
-      addLog(2, '状态', `UniProt 返回：${uRes.entries.map(e => e.acc).join('、')}`)
+      addLog(2, '状态', `UniProt 返回：${uRes.entries.map((e: { acc: string; name: string }) => e.acc).join('、')}`)
 
       // STEP 4: 结构获取
       setStep(3)
@@ -98,7 +98,7 @@ export default function App() {
 
       // AI 决策 选口袋
       addLog(5, '状态', 'AI 正在选择最佳口袋…')
-      const pocketOpts = pRes.pockets.map((p, i) => `#${i + 1} score=${p.score.toFixed(2)}`)
+      const pocketOpts = pRes.pockets.map((p: { center: [number, number, number]; score: number }, i: number) => `#${i + 1} score=${p.score.toFixed(2)}`)
       const pd = await api.aiDecision({
         options: pocketOpts,
         context: `为蛋白 ${td.selected_option} 选择最佳结合口袋。`,
@@ -139,8 +139,10 @@ export default function App() {
       addLog(7, '日志', JSON.stringify(mi))
       if (mi.success) setMoleculeImage(mi.image_data)
 
-      // 已移除对接可视化步骤，直接完成流程
+      // 最后一步：结果保存
       setStep(8)
+      addLog(8, '状态', '结果保存中...')
+      // 在这里可以添加保存数据逻辑
       addLog(8, '状态', '流程全部完成！')
     } catch (err: any) {
       addLog(step || 1, '状态', `🚨 出错：${err.message}`)
@@ -232,6 +234,7 @@ export default function App() {
           padding: 0 24px; border-radius: 8px; font-size: 16px;
           cursor: pointer;
           transition: transform 0.2s, box-shadow 0.2s;
+          height: 44px; /* Explicitly set height */
         }
         .input button:hover {
           transform: translateY(-2px);
@@ -239,6 +242,70 @@ export default function App() {
         }
         .input button:active {
           transform: translateY(0) scale(0.97);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) { /* Tablet and smaller */
+          .wrapper {
+            padding: 20px;
+            gap: 16px;
+          }
+          .app {
+            padding: 20px;
+          }
+          .input {
+            flex-direction: column;
+            gap: 12px; /* Adjust gap for vertical layout */
+            align-items: center; /* Center the elements */
+          }
+          .input input, .input button {
+            width: 100%; /* Make input and button full width */
+            font-size: 15px; /* Slightly smaller font */
+          }
+          .title-row h1 {
+            font-size: 24px; /* Slightly smaller h1 */
+          }
+          .title-row h3 {
+            font-size: 14px; /* Slightly smaller h3 */
+          }
+        }
+
+        @media (max-width: 480px) { /* Mobile phones */
+          .wrapper {
+            padding: 10px;
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center items when stacked */
+          }
+          .app {
+            padding: 15px;
+            width: 95%; /* Main app takes 95% width on mobile */
+          }
+          .title-row h1 {
+            font-size: 20px; 
+          }
+          .title-row h3 {
+            font-size: 13px;
+          }
+          .input {
+            width: 100%;
+            align-items: center;
+          }
+          .input input {
+            width: 80%; /* Input field width 80% of parent */
+          }
+          .input button {
+          transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 8px;
+            // width: 1%; /* Button width 50% of parent */
+            width: 100px;
+            height: 32px; /* Taller button on mobile */
+            padding: 4px 0;
+            font-size: 16px;
+            // border-radius: 12px; /* More rounded corners */
+            font-weight: 500; /* Slightly bolder text */
+            margin-top: 8px; /* Add some space between input and button */
+          }
+          /* Further adjustments for panels if needed */
         }
       `}</style>
 
@@ -255,7 +322,7 @@ export default function App() {
                 <input
                   value={disease}
                   placeholder="输入疾病名称"
-                  onChange={e => setDisease(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisease(e.target.value)}
                 />
                 <button onClick={handleStart}>开始</button>
               </div>
@@ -268,18 +335,14 @@ export default function App() {
             <>
               <WorkflowStepper
                 currentStep={step}
-                stepLabels={[
-                  '靶点识别','UniProt检索','结构获取','口袋预测',
-                  '配体获取','化合物优化','分子图像','结果保存','完成'
-                ]}
               />
               <ResultPanel
                 disease={disease}
-                geneSymbol={decisionTarget?.selected_option}
+                geneSymbol={decisionTarget?.selected_option || ''}
                 uniprotAcc={workflowState?.uniprot_acc}
-                pocketCenter={decisionPocket?.pocket_center}
-                optimizedSmiles={decisionCompound?.optimized_smiles}
-                explanation={decisionCompound?.explanation}
+                pocketCenter={decisionPocket?.pocket_center || null}
+                optimizedSmiles={decisionCompound?.optimized_smiles || null}
+                explanation={decisionCompound?.explanation || null}
                 moleculeImage={moleculeImage}
                 structurePath={workflowState?.structure_path}
               />
@@ -288,10 +351,6 @@ export default function App() {
             <>
               <WorkflowStepper
                 currentStep={step}
-                stepLabels={[
-                  '靶点识别','UniProt检索','结构获取','口袋预测',
-                  '配体获取','化合物优化','分子图像','结果保存','完成'
-                ]}
               />
               <StatusPanel logs={logs.filter(l => l.category === '状态' && l.step === step)} />
               <DecisionPanel logs={logs.filter(l => l.category === '决策')} />

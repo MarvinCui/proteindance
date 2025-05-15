@@ -8,6 +8,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import sys
+# Add the parent directory (project root) to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import services_func
 
 
@@ -30,6 +34,7 @@ app.add_middleware(
 # —— Pydantic 请求/响应模型 —— #
 class DiseaseRequest(BaseModel):
     disease: str
+    innovation_level: int = 5  # 默认创新度为5
 
 
 class UniprotRequest(BaseModel):
@@ -87,7 +92,10 @@ class CompleteWorkflowRequest(BaseModel):
 @app.post("/api/disease-targets")
 async def get_disease_targets(req: DiseaseRequest):
     try:
-        return services_func.DrugDiscoveryAPI.get_disease_targets(req.disease)
+        return services_func.DrugDiscoveryAPI.get_disease_targets(
+            req.disease, 
+            innovation_level=req.innovation_level
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

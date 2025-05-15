@@ -6,6 +6,8 @@ export interface ApiResponse<T> {
   }
   
   const API_BASE = '/api';
+  // const API_BASE = 'http://localhost:5001/api';
+
 
   async function postJson<T>(path: string, body: any): Promise<ApiResponse<T>> {
     const res = await fetch(`${API_BASE}${path}`, {

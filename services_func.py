@@ -446,6 +446,8 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
 - 只做少量、精确的结构修饰（1-3处修改）
 - 不要添加复杂或大型的官能团
 - 避免引入复杂环系统或长链结构
+-尽量避免毒性
+-使得化合物能够顺利达到位点，不被提前分解
 
 请确保修改后的SMILES代表一个合理的、小分子药物大小的化合物。检查优化后的SMILES是否有任何语法错误，并确认分子结构的合理性。
             """
@@ -456,6 +458,10 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         max_tokens=1000)
+        # rsp = client.chat.completions.create(model="deepseek-ai/DeepSeek-R1",
+        # messages=[{"role": "user", "content": prompt}],
+        # temperature=0.3,
+        # max_tokens=1000)
 
         text = rsp.choices[0].message.content.strip()
 
@@ -1177,13 +1183,61 @@ class DrugDiscoveryAPI:
     """为前端提供API接口"""
 
     @staticmethod
-    def get_disease_targets(disease: str) -> Dict:
+    def get_disease_targets(disease: str, innovation_level: int = 5) -> Dict:
         """获取疾病相关靶点"""
         try:
-            proteins = get_targets_from_deepseek(disease)
+            # 创建提示词，根据用户指定的创新度进行调整
+            prompt = f"""列举与{disease}相关的药物靶点。靶点创新度为{innovation_level}/10。
+            
+创新度越低，返回的靶点越成熟可靠；创新度越高，返回的靶点越新颖前沿。
+            
+请返回最合适的蛋白基因符号列表（如EGFR, TP53等），每行一个。"""
+            
+            # 使用自定义提示词调用DeepSeek API
+            rsp = client.chat.completions.create(
+                model="deepseek-ai/DeepSeek-V3",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2 + (innovation_level * 0.05)  # 创新度越高，温度也相应调高一些
+            )
+            
+            text = rsp.choices[0].message.content
+            
+            # 解析蛋白列表
+            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            candidates = []
+            
+            for l in lines:
+                # 提取可能的蛋白/基因名
+                parts = l.split(None, 1)
+                token = parts[0]
+                
+                # 去除序号如 "1." 或 "1)"
+                if re.match(r'^\d+[.)]', token):
+                    if len(parts) > 1:
+                        token = parts[1].split()[0]
+                    else:
+                        continue
+                
+                # 清理标点符号，只保留字母、数字和特定标点
+                token = re.sub(r"[^A-Za-z0-9_-]", "", token)
+                
+                # 验证格式 - 至少有一个字母，长度在合理范围内
+                if re.search(r'[A-Za-z]', token) and 2 <= len(token) <= 12:
+                    candidates.append(token.upper())
+            
+            valid_proteins = [p for p in candidates if not p.isdigit() and re.match(r'^[A-Z][A-Z0-9_-]*$', p)]
+            
+            # 如果没有有效结果，提供一些常见靶点
+            if not valid_proteins:
+                default_proteins = ["EGFR", "TP53", "BRAF", "HER2", "VEGF", "TNF", "IL6", "ACE2", "PARP1", "KRAS"]
+                return {
+                    "success": True,
+                    "targets": default_proteins[:10]
+                }
+            
             return {
                 "success": True,
-                "targets": proteins
+                "targets": valid_proteins[:10]
             }
         except Exception as e:
             logger.error(f"获取疾病靶点失败: {str(e)}")
