@@ -1191,7 +1191,7 @@ class DrugDiscoveryAPI:
             
 创新度越低，返回的靶点越成熟可靠；创新度越高，返回的靶点越新颖前沿。
             
-请返回最合适的蛋白基因符号列表（如EGFR, TP53等），每行一个。"""
+请返回最合适的蛋白基因符号列表（如EGFR, TP53等），每行一个。禁止把多个叠在一起"""
             
             # 使用自定义提示词调用DeepSeek API
             rsp = client.chat.completions.create(
@@ -1199,6 +1199,8 @@ class DrugDiscoveryAPI:
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2 + (innovation_level * 0.05)  # 创新度越高，温度也相应调高一些
             )
+
+            print(rsp)
             
             text = rsp.choices[0].message.content
             
