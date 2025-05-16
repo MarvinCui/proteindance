@@ -254,12 +254,17 @@ export default function App() {
             padding: 20px;
           }
           .input {
-            flex-direction: column;
-            gap: 12px; /* Adjust gap for vertical layout */
-            align-items: center; /* Center the elements */
+            flex-direction: row; /* Keep horizontal layout for all screens */
+            gap: 12px;
+            align-items: center;
           }
-          .input input, .input button {
-            width: 100%; /* Make input and button full width */
+          .input input {
+            flex: 1;
+            font-size: 15px; /* Slightly smaller font */
+            min-width: 0; /* Allow input to shrink if needed */
+          }
+          .input button {
+            width: auto; /* Auto width based on content */
             font-size: 15px; /* Slightly smaller font */
           }
           .title-row h1 {
@@ -288,22 +293,20 @@ export default function App() {
           }
           .input {
             width: 100%;
+            flex-direction: row; /* Keep horizontal layout */
             align-items: center;
+            gap: 8px; /* Smaller gap on mobile */
           }
           .input input {
-            width: 80%; /* Input field width 80% of parent */
+            flex: 1; /* Input takes available space */
+            min-width: 0; /* Allow input to shrink if needed */
           }
           .input button {
-          transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 8px;
-            // width: 1%; /* Button width 50% of parent */
-            width: 100px;
-            height: 32px; /* Taller button on mobile */
-            padding: 4px 0;
-            font-size: 16px;
-            // border-radius: 12px; /* More rounded corners */
-            font-weight: 500; /* Slightly bolder text */
-            margin-top: 8px; /* Add some space between input and button */
+            width: auto; /* Auto width based on content */
+            padding: 0 12px; /* Less horizontal padding */
+            height: 40px; /* Slightly shorter than desktop */
+            font-size: 14px;
+            white-space: nowrap; /* Prevent button text from wrapping */
           }
           /* Further adjustments for panels if needed */
         }
