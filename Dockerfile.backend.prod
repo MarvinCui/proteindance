@@ -48,10 +48,6 @@ COPY --from=builder /app       /app
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
-# 如果 P2Rank 脚本硬编码了 /usr/lib/jvm/java-17-openjdk-amd64/bin/java，
-# 可添加一条单向软链接指向 alternatives 中的实际 java
-RUN ln -sf /etc/alternatives/java $JAVA_HOME/bin/java
-
 # 安装 Uvicorn
 RUN pip install --no-cache-dir \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
