@@ -779,13 +779,15 @@ def get_targets_from_deepseek(disease_chinese: str, top_k=10, max_attempts=3) ->
                 4. 返回{top_k}个最相关的靶点
 5. 确保每个符号是真实的蛋白质或基因
 6. 不要添加解释，只返回基因符号列表
+7. 必须要在uniprot能够查询
                 """
 
         print_info(f"正在尝试获取蛋白靶点（尝试 {attempt}/{max_attempts}）...")
 
         try:
             rsp = client.chat.completions.create(
-                model="deepseek-ai/DeepSeek-V3",
+                # model="deepseek-ai/DeepSeek-V3",
+                model='GPT-4.1',
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2
             )

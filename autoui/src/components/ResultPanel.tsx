@@ -159,12 +159,12 @@ const ResultPanel: React.FC<Props> = ({
             </FileLink>
           )}
           {optimizedSmiles && (
-            <FileLink href={`data:text/plain;charset=utf-8,${encodeURIComponent(optimizedSmiles)}`} download="optimized_molecule.smi">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m14 8V5H5v6h14m0 2H5v6h14v-6z"/>
-              </svg>
-              优化后分子SMILES
-            </FileLink>
+          <FileLink href={`data:text/plain;charset=utf-8,${encodeURIComponent(optimizedSmiles)}`} download="optimized_molecule.smi">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m14 8V5H5v6h14m0 2H5v6h14v-6z"/>
+            </svg>
+            优化后分子SMILES
+          </FileLink>
           )}
         </div>
       </Section>

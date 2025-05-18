@@ -111,40 +111,40 @@ export default function WorkflowStepper({ currentStep, stepLabels = defaultStepL
   return (
     <>
       <style>{stepperStyles}</style>
-      <motion.ul
-        className="stepper"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+    <motion.ul
+      className="stepper"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
       >
         {displayedLabels.map((label, idx) => {
           const stepNum = idx + 1;
           const isActive = stepNum === currentStep;
           const isDone = stepNum < currentStep;
 
-          return (
-            <motion.li
-              key={label}
+        return (
+          <motion.li
+            key={label}
               className="stepper-item"
-            >
-              <motion.div
+          >
+            <motion.div
                 className="stepper-circle"
-                variants={circleVariants}
-                animate={isActive || isDone ? 'active' : 'inactive'}
+              variants={circleVariants}
+              animate={isActive || isDone ? 'active' : 'inactive'}
                 transition={{ type: 'spring', stiffness: 300 }}
-              />
-              <motion.div
+            />
+            <motion.div
                 className="stepper-label"
-                variants={labelVariants}
-                animate={isActive || isDone ? 'active' : 'inactive'}
+              variants={labelVariants}
+              animate={isActive || isDone ? 'active' : 'inactive'}
                 transition={{ duration: 0.3 }}
-              >
-                {label}
-              </motion.div>
-            </motion.li>
+            >
+              {label}
+            </motion.div>
+          </motion.li>
           );
-        })}
-      </motion.ul>
+      })}
+    </motion.ul>
     </>
   );
 }
