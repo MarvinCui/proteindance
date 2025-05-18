@@ -12,3 +12,4 @@ __pycache__/
 *.py[cod]
 drug_discovery.log
 **/__pycache__/
+*.pyc
