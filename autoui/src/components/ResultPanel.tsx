@@ -81,6 +81,28 @@ const InfoCard = styled.div`
   }
 `
 
+const ExplanationSection = styled.div`
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 3px solid #4f46e5;
+  
+  h4 {
+    margin: 0 0 8px;
+    color: #4f46e5;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  p {
+    margin: 0;
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+`
+
 interface Props {
   disease: string
   geneSymbol: string
@@ -88,9 +110,12 @@ interface Props {
   pocketCenter: [number, number, number] | null
   optimizedSmiles: string | null
   explanation: string | null
+  selectionReason?: string | null
+  optimizationExplanation?: string | null
   moleculeImage?: string | null
   dockingImage?: string | null
   structurePath?: string | null
+  targetExplanation?: string | null
 }
 
 const ResultPanel: React.FC<Props> = ({
@@ -100,9 +125,12 @@ const ResultPanel: React.FC<Props> = ({
   pocketCenter,
   optimizedSmiles,
   explanation,
+  selectionReason,
+  optimizationExplanation,
   moleculeImage,
   dockingImage,
-  structurePath
+  structurePath,
+  targetExplanation
 }) => {
   return (
     <Panel>
@@ -128,6 +156,15 @@ const ResultPanel: React.FC<Props> = ({
         </InfoGrid>
       </Section>
 
+      {targetExplanation && (
+        <Section>
+          <SectionTitle>靶点分析</SectionTitle>
+          <ExplanationSection>
+            <p>{targetExplanation}</p>
+          </ExplanationSection>
+        </Section>
+      )}
+
       {(moleculeImage || dockingImage) && (
         <Section>
           <SectionTitle>结构可视化</SectionTitle>
@@ -144,7 +181,54 @@ const ResultPanel: React.FC<Props> = ({
 
       <Section>
         <SectionTitle>科学分析</SectionTitle>
-        <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{explanation || '暂无分析'}</p>
+        {explanation ? (
+          <>
+            {/* 优先使用传入的已解析的选择理由和优化解释 */}
+            {selectionReason || optimizationExplanation ? (
+              <>
+                <ExplanationSection>
+                  <h4>选择理由</h4>
+                  <p>{selectionReason || '未提供选择理由'}</p>
+                </ExplanationSection>
+                
+                <ExplanationSection>
+                  <h4>优化解释</h4>
+                  <p>{optimizationExplanation || '未提供优化解释'}</p>
+                </ExplanationSection>
+              </>
+            ) : (
+              // 如果没有预解析的值，则尝试解析explanation字符串
+              (() => {
+                // 尝试从返回的解释中解析出选择理由和优化解释
+                const selectReasonMatch = explanation.match(/选择理由:\s*(.*?)(?=\n\n优化解释:|$)/s);
+                const optimizeExplainMatch = explanation.match(/优化解释:\s*(.*?)$/s);
+                
+                const selectReason = selectReasonMatch ? selectReasonMatch[1].trim() : null;
+                const optimizeExplain = optimizeExplainMatch ? optimizeExplainMatch[1].trim() : null;
+                
+                return (
+                  <>
+                    <ExplanationSection>
+                      <h4>选择理由</h4>
+                      <p>{selectReason || '未提供选择理由'}</p>
+                    </ExplanationSection>
+                    
+                    <ExplanationSection>
+                      <h4>优化解释</h4>
+                      <p>{optimizeExplain || '未提供优化解释'}</p>
+                    </ExplanationSection>
+                    
+                    {!selectReason && !optimizeExplain && (
+                      <p>{explanation}</p>
+                    )}
+                  </>
+                );
+              })()
+            )}
+          </>
+        ) : (
+          <p>暂无分析</p>
+        )}
       </Section>
 
       <Section>

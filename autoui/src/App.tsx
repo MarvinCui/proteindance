@@ -7,6 +7,7 @@ import HistoryPanel from './components/HistoryPanel'
 import InnovationSlider from './components/InnovationSlider'
 import * as api from './services/api'
 import ResultPanel from './components/ResultPanel'
+import { TargetWithScore } from './services/api'
 
 interface LogEntry {
   step: number
@@ -25,6 +26,15 @@ export default function App() {
   // 已移除 dockingImage 状态
   const [workflowState, setWorkflowState] = useState<any>(null)
   const [innovationLevel, setInnovationLevel] = useState(5)
+  // 更新状态存储包含创新度的靶点列表
+  const [allTargets, setAllTargets] = useState<TargetWithScore[]>([])
+  // 新增状态记录已尝试的靶点
+  const [triedTargets, setTriedTargets] = useState<string[]>([])
+  // 记录靶点解释
+  const [targetExplanation, setTargetExplanation] = useState<string | null>(null)
+  // 分离记录选择理由和优化解释
+  const [selectionReason, setSelectionReason] = useState<string | null>(null)
+  const [optimizationExplanation, setOptimizationExplanation] = useState<string | null>(null)
 
   const addLog = (
     logStep: number,
@@ -34,6 +44,35 @@ export default function App() {
     setLogs(prev => [...prev, { step: logStep, category, message }])
   }
 
+  // 新增函数：尝试获取UniProt条目
+  const tryGetUniprotEntry = async (target: string) => {
+    addLog(2, '状态', `查询 UniProt 条目：${target}`)
+    const uRes = await api.getUniprotEntries(target)
+    addLog(2, '日志', JSON.stringify(uRes))
+    
+    // 记录已尝试的靶点
+    setTriedTargets(prev => [...prev, target])
+    
+    return uRes
+  }
+
+  // 更新函数：获取下一个未尝试的靶点，优先选择创新度相近的
+  const getNextTarget = () => {
+    // 过滤出未尝试的靶点
+    const remaining = allTargets.filter(t => !triedTargets.includes(t.symbol))
+    if (remaining.length === 0) return null
+    
+    // 按创新度与用户请求的创新度接近程度排序
+    const sorted = [...remaining].sort((a, b) => {
+      const diffA = Math.abs(a.innovation_score - innovationLevel)
+      const diffB = Math.abs(b.innovation_score - innovationLevel)
+      return diffA - diffB
+    })
+    
+    // 返回创新度最接近的靶点
+    return sorted[0]
+  }
+
   const handleStart = async () => {
     setStep(0)
     setLogs([])
@@ -41,8 +80,10 @@ export default function App() {
     setDecisionPocket(null)
     setDecisionCompound(null)
     setMoleculeImage(null)
-    // 已移除 dockingImage 状态重置
     setWorkflowState(null)
+    // 重置靶点状态
+    setAllTargets([])
+    setTriedTargets([])
 
     try {
       // STEP 1: 靶点识别
@@ -51,34 +92,138 @@ export default function App() {
       const tRes = await api.getDiseaseTargets(disease, innovationLevel)
       addLog(1, '日志', JSON.stringify(tRes))
       if (!tRes.success) throw new Error(tRes.error)
-      addLog(1, '状态', `DeepSeek 返回：${tRes.targets.join('、')}`)
+      
+      // 存储靶点列表（包含创新度）
+      setAllTargets(tRes.targets_with_scores || [])
+      
+      // 展示靶点及其创新度
+      const targetDisplay = tRes.targets_with_scores 
+        ? tRes.targets_with_scores.map((t: TargetWithScore) => `${t.symbol}[创新度:${t.innovation_score}]`).join('、')
+        : tRes.targets.join('、')
+      
+      addLog(1, '状态', `DeepSeek 返回：${targetDisplay}`)
 
       // STEP 2: AI 决策 选靶点
       addLog(2, '状态', 'AI 正在选择最佳靶点…')
+      
+      // 使用包含创新度的选项
+      const targetOptions = tRes.targets_with_scores
+        ? tRes.targets_with_scores.map((t: TargetWithScore) => `${t.symbol} [创新度:${t.innovation_score}]`)
+        : tRes.targets
+      
       const td = await api.aiDecision({
-        options: tRes.targets,
-        context: `为疾病「${disease}」选择最合适的药物靶点。`,
+        options: targetOptions,
+        context: `为疾病「${disease}」选择最合适的药物靶点，考虑用户指定的创新度(${innovationLevel}/10)。`,
         question: '哪个蛋白靶点最适合作为药物开发目标？'
       })
+      
       addLog(2, '日志', JSON.stringify(td))
       if (!td.success) throw new Error(td.error)
-      setDecisionTarget(td)
+      
+      // 从选择的选项中提取基因符号
+      const selectedSymbol = td.selected_option.split(' ')[0]
+      
+      // 更新决策目标，只保存基因符号部分
+      const updatedDecision = {
+        ...td,
+        selected_option: selectedSymbol,
+        raw_selected_option: td.selected_option  // 保存原始选择
+      }
+      
+      setDecisionTarget(updatedDecision)
       addLog(2, '决策', `选择: ${td.selected_option} 理由: ${td.explanation}`)
 
-      // STEP 3: UniProt 检索
+      // 获取靶点解释
+      try {
+        const prompt = `请简要介绍${selectedSymbol}蛋白在${disease}疾病中的作用机制，包括它的功能和为什么是有价值的药物靶点（80-120字）`
+        const targetInfoRes = await api.getTargetExplanation(selectedSymbol, disease)
+        if (targetInfoRes.success && targetInfoRes.explanation) {
+          setTargetExplanation(targetInfoRes.explanation)
+          addLog(2, '决策', `靶点分析: ${targetInfoRes.explanation}`)
+        }
+      } catch (error) {
+        console.log("获取靶点解释失败:", error)
+      }
+
+      // STEP 3: UniProt 检索 - 尝试首选靶点
       setStep(2)
-      addLog(2, '状态', `查询 UniProt 条目：${td.selected_option}`)
-      const uRes = await api.getUniprotEntries(td.selected_option)
-      addLog(2, '日志', JSON.stringify(uRes))
-      if (!uRes.success) throw new Error(uRes.error)
+      let currentTarget = selectedSymbol
+      let uRes = await tryGetUniprotEntry(currentTarget)
+      
+      // 如果未找到UniProt条目，尝试其他靶点
+      while (!uRes.success || !uRes.entries || uRes.entries.length === 0) {
+        // 获取下一个未尝试的靶点
+        const nextTargetObj = getNextTarget()
+        if (!nextTargetObj) {
+          addLog(2, '状态', '普通靶点查询失败，尝试获取已验证的UniProt靶点...')
+          
+          // 所有靶点都尝试失败，使用我们的新API获取已验证靶点
+          try {
+            const verifiedRes = await api.getVerifiedTarget(disease)
+            if (verifiedRes.success) {
+              addLog(2, '状态', `已获取已验证的替代靶点: ${verifiedRes.symbol}[创新度:${verifiedRes.innovation_score}]`)
+              
+              // 更新靶点列表
+              setAllTargets(prev => [...prev, {
+                symbol: verifiedRes.symbol,
+                innovation_score: verifiedRes.innovation_score
+              }])
+              
+              // 更新决策靶点
+              setDecisionTarget({
+                ...updatedDecision,
+                selected_option: verifiedRes.symbol,
+                innovation_score: verifiedRes.innovation_score,
+                fallback: true
+              })
+              
+              addLog(2, '决策', `更换为已验证靶点: ${verifiedRes.symbol}[创新度:${verifiedRes.innovation_score}] (UniProt: ${verifiedRes.uniprot_acc})`)
+              
+              // 使用验证过的UniProt条目
+              uRes = {
+                success: true,
+                entries: verifiedRes.entries
+              }
+              
+              // 记录这个靶点已尝试
+              setTriedTargets(prev => [...prev, verifiedRes.symbol])
+              
+              break // 跳出循环，使用这个已验证的靶点
+            } else {
+              addLog(2, '状态', `错误：无法获取已验证靶点 - ${verifiedRes.error}`)
+              addLog(2, '状态', '错误：所有靶点都无法在UniProt中找到匹配项')
+              return
+            }
+          } catch (error) {
+            addLog(2, '状态', `错误：获取已验证靶点时发生异常 - ${error}`)
+            addLog(2, '状态', '错误：所有靶点都无法在UniProt中找到匹配项')
+            return
+          }
+        }
+        
+        const nextTarget = nextTargetObj.symbol
+        const nextScore = nextTargetObj.innovation_score
+        
+        addLog(2, '状态', `未找到${currentTarget}的UniProt条目，尝试下一个靶点：${nextTarget}[创新度:${nextScore}]`)
+        currentTarget = nextTarget
+        
+        // 更新决策靶点
+        setDecisionTarget({
+          ...updatedDecision, 
+          selected_option: currentTarget,
+          innovation_score: nextScore
+        })
+        
+        addLog(2, '决策', `更换靶点为: ${currentTarget}[创新度:${nextScore}]`)
+        
+        // 尝试新靶点
+        uRes = await tryGetUniprotEntry(currentTarget)
+      }
+      
       addLog(2, '状态', `UniProt 返回：${uRes.entries.map((e: { acc: string; name: string }) => e.acc).join('、')}`)
 
       // STEP 4: 结构获取
       setStep(3)
-      if (!uRes.entries || uRes.entries.length === 0) {
-        addLog(3, '状态', '错误：未找到任何 UniProt 条目，请确认基因符号是否正确')
-        return
-      }
       const acc = uRes.entries[0].acc
       addLog(3, '状态', `获取 UniProt Accession：${acc}`)
       const sRes = await api.getStructureSources(acc)
@@ -101,7 +246,7 @@ export default function App() {
       const pocketOpts = pRes.pockets.map((p: { center: [number, number, number]; score: number }, i: number) => `#${i + 1} score=${p.score.toFixed(2)}`)
       const pd = await api.aiDecision({
         options: pocketOpts,
-        context: `为蛋白 ${td.selected_option} 选择最佳结合口袋。`,
+        context: `为蛋白 ${currentTarget} 选择最佳结合口袋。`,
         question: '哪个口袋最优？'
       })
       addLog(5, '日志', JSON.stringify(pd))
@@ -112,11 +257,44 @@ export default function App() {
       // STEP 6: 配体获取
       setStep(5)
       addLog(5, '状态', `获取候选配体：${acc}`)
-      const lRes = await api.getLigands(acc)
+      const lRes = await api.getLigands(acc, undefined, disease)
       addLog(5, '日志', JSON.stringify(lRes))
       if (!lRes.success) throw new Error(lRes.error)
-      const allSmiles = [...(lRes.custom_smiles || []), ...(lRes.chembl_smiles || [])]
-      addLog(5, '状态', `共获取 ${allSmiles.length} 条 SMILES`)
+      
+      // 收集所有来源的SMILES
+      let allSmiles: string[] = []
+      let hasAiGenerated = false
+      
+      // 常规数据库配体
+      if (lRes.custom_smiles) {
+        allSmiles = [...allSmiles, ...lRes.custom_smiles]
+      }
+      if (lRes.chembl_smiles) {
+        allSmiles = [...allSmiles, ...lRes.chembl_smiles]
+        addLog(5, '状态', `从ChEMBL数据库获取了${lRes.chembl_smiles.length}个配体`)
+      }
+      
+      // AI生成的配体
+      if (lRes.ai_generated_smiles) {
+        hasAiGenerated = true
+        allSmiles = [...allSmiles, ...lRes.ai_generated_smiles]
+        
+        // 显示这些是AI生成的配体
+        addLog(5, '状态', `🤖 AI生成了${lRes.ai_generated_smiles.length}个配体（未在数据库中找到现有配体）`)
+        
+        // 显示生成理由
+        if (lRes.ai_generated_full && lRes.ai_generated_full.length > 0) {
+          lRes.ai_generated_full.forEach((item: any, index: number) => {
+            addLog(5, '决策', `🤖 AI生成配体 #${index+1}: ${item.smiles.substring(0, 30)}... 设计理由: ${item.reason}`)
+          })
+        }
+      }
+      
+      if (allSmiles.length === 0) {
+        throw new Error("无法获取或生成任何配体")
+      }
+      
+      addLog(5, '状态', `共获取 ${allSmiles.length} 条 SMILES${hasAiGenerated ? ' (包含AI生成)' : ''}`)
 
       // STEP 7: 化合物优化
       setStep(6)
@@ -124,13 +302,36 @@ export default function App() {
       const cd = await api.selectCompound({
         smiles_list: allSmiles,
         disease,
-        protein: td.selected_option,
+        protein: currentTarget,
         pocket_center: pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center
       })
       addLog(6, '日志', JSON.stringify(cd))
       if (!cd.success) throw new Error(cd.error)
       setDecisionCompound(cd)
-      addLog(6, '决策', `优化后: ${cd.optimized_smiles} 理由: ${cd.explanation}`)
+
+      // 改进解释显示 - 分别显示选择理由和优化解释
+      if (cd.explanation) {
+        // 尝试从返回的解释中解析出选择理由和优化解释
+        const selectReasonMatch = cd.explanation.match(/选择理由:\s*(.*?)(?=\n\n优化解释:|$)/s);
+        const optimizeExplainMatch = cd.explanation.match(/优化解释:\s*(.*?)$/s);
+        
+        const selectReason = selectReasonMatch ? selectReasonMatch[1].trim() : "未提供选择理由";
+        const optimizeExplain = optimizeExplainMatch ? optimizeExplainMatch[1].trim() : "未提供优化解释";
+        
+        // 保存到状态中供结果面板使用
+        setSelectionReason(selectReason);
+        setOptimizationExplanation(optimizeExplain);
+        
+        // 添加两条单独的日志，更清晰地展示
+        addLog(6, '决策', `选择理由: ${selectReason}`);
+        addLog(6, '决策', `优化解释: ${optimizeExplain}`);
+        
+        // 仅添加优化后的SMILES信息日志
+        addLog(6, '状态', `优化后的SMILES: ${cd.optimized_smiles}`);
+      } else {
+        // 兼容旧格式
+        addLog(6, '决策', `优化后: ${cd.optimized_smiles} 理由: ${cd.explanation || "未提供"}`);
+      }
 
       // STEP 8: 分子图像
       setStep(7)
@@ -197,6 +398,20 @@ export default function App() {
           margin: 4px 0 0;
           font-size: 16px;
           color: #666;
+        }
+        
+        .designer-credit {
+          margin-top: 6px;
+          font-size: 12px;
+          color: #9CA3AF;
+          font-weight: 500;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          opacity: 0.85;
+          text-align: center;
         }
 
         .logo-placeholder {
@@ -317,6 +532,7 @@ export default function App() {
           <div className="title-row">
             <h1>Protein Dance</h1>
             <h3>基于DeepSeek的全自动制药智能体</h3>
+            <div className="designer-credit">Designed by Zhenxiong W. & Boran C. Guided by Dr Lingfang T. in Biochemphysics</div>
           </div>
 
           {step === 0 ? (
@@ -346,8 +562,11 @@ export default function App() {
                 pocketCenter={decisionPocket?.pocket_center || null}
                 optimizedSmiles={decisionCompound?.optimized_smiles || null}
                 explanation={decisionCompound?.explanation || null}
+                selectionReason={selectionReason}
+                optimizationExplanation={optimizationExplanation}
                 moleculeImage={moleculeImage}
                 structurePath={workflowState?.structure_path}
+                targetExplanation={targetExplanation}
               />
             </>
           ) : (
