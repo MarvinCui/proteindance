@@ -584,7 +584,7 @@ Tuple[最佳SMILES, 优化后的SMILES, 解释]
                     """
 
                 fix_response = client.chat.completions.create(
-                    model="deepseek-ai/DeepSeek-R1",
+                    model="deepseek-ai/DeepSeek-V3",
                     messages=[{"role": "user", "content": fix_props_prompt}],
                     temperature=0.2,
                     max_tokens=200
