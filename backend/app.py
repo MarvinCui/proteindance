@@ -8,11 +8,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import sys
-# Add the parent directory (project root) to sys.path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-import services_func
+# Import organized backend services
+from .services.drug_discovery_api import DrugDiscoveryAPI
+from .core.config import settings
 
 
 # —— FastAPI 实例化 —— #
@@ -92,8 +90,8 @@ class CompleteWorkflowRequest(BaseModel):
 @app.post("/api/disease-targets")
 async def get_disease_targets(req: DiseaseRequest):
     try:
-        return services_func.DrugDiscoveryAPI.get_disease_targets(
-            req.disease, 
+        return DrugDiscoveryAPI.get_disease_targets(
+            req.disease,
             innovation_level=req.innovation_level
         )
     except Exception as e:
@@ -103,7 +101,7 @@ async def get_disease_targets(req: DiseaseRequest):
 @app.post("/api/uniprot-entries")
 async def get_uniprot_entries(req: UniprotRequest):
     try:
-        return services_func.DrugDiscoveryAPI.get_uniprot_entries(req.gene_symbol)
+        return DrugDiscoveryAPI.get_uniprot_entries(req.gene_symbol)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -120,29 +118,45 @@ async def get_structure_sources(req: StructureRequest):
     3) 返回是否可用 + 实际下载到的文件路径（如果有）。
     """
     try:
-        # 下载 AlphaFold 预测模型（返回 Path 或 None）
-        af_path: Optional[Path] = services_func.download_alphafold(
-            req.uniprot_acc, dest_dir=services_func.TMP_DIR
-        )
+        return DrugDiscoveryAPI.get_structure_sources(req.uniprot_acc)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # 查询该 accession 对应的 PDB 列表
-        pdb_ids: List[str] = services_func.get_pdb_ids_for_uniprot(req.uniprot_acc)
 
-        return StructureSourcesResponse(
-            success=True,
-            alphafold_available=(af_path is not None),
-            pdb_ids=pdb_ids,
-            structure_path=str(af_path) if af_path else None
+@app.post("/api/target-explanation")
+async def target_explanation(req: dict):
+    try:
+        gene_symbol = req.get("gene_symbol")
+        disease = req.get("disease")
+        if not gene_symbol or not disease:
+            raise HTTPException(status_code=400, detail="缺少gene_symbol或disease参数")
+
+        api = DrugDiscoveryAPI()
+        explanation = api.ai_engine.generate_target_explanation(gene_symbol, disease)
+        return {
+            "success": True,
+            "explanation": explanation
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/download-structure")
+async def download_structure(req: dict):
+    try:
+        return DrugDiscoveryAPI.download_structure(
+            pdb_id=req.get("pdb_id"),
+            uniprot_acc=req.get("uniprot_acc"),
+            source_type=req.get("source_type", "pdb")
         )
     except Exception as e:
-        # 500 错误返回
-        raise HTTPException(status_code=500, detail=f"获取结构来源失败：{e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/predict-pockets")
 async def predict_pockets(req: PredictPocketsRequest):
     try:
-        return services_func.DrugDiscoveryAPI.predict_pockets(req.structure_path)
+        return DrugDiscoveryAPI.predict_pockets(req.structure_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -152,7 +166,7 @@ async def get_ligands(req: LigandsRequest):
     if not req.uniprot_acc and not req.custom_smiles:
         raise HTTPException(status_code=400, detail="必须提供 uniprot_acc 或 custom_smiles")
     try:
-        return services_func.DrugDiscoveryAPI.get_ligands(
+        return DrugDiscoveryAPI.get_ligands(
             req.uniprot_acc, req.custom_smiles
         )
     except Exception as e:
@@ -164,7 +178,7 @@ async def ai_decision(req: AIDecisionRequest):
     if not req.options or not req.question:
         raise HTTPException(status_code=400, detail="缺少 options 或 question 参数")
     try:
-        return services_func.DrugDiscoveryAPI.ai_make_decision(
+        return DrugDiscoveryAPI.ai_make_decision(
             req.options, req.context, req.question
         )
     except Exception as e:
@@ -176,7 +190,7 @@ async def select_compound(req: SelectCompoundRequest):
     if not req.smiles_list or not req.disease or not req.protein:
         raise HTTPException(status_code=400, detail="缺少必要参数")
     try:
-        return services_func.DrugDiscoveryAPI.select_best_compound(
+        return DrugDiscoveryAPI.select_best_compound(
             req.smiles_list, req.disease, req.protein, req.pocket_center
         )
     except Exception as e:
@@ -188,7 +202,7 @@ async def molecule_image(req: MoleculeImageRequest):
     if not req.smiles:
         raise HTTPException(status_code=400, detail="缺少 smiles 参数")
     try:
-        return services_func.DrugDiscoveryAPI.generate_molecule_image(req.smiles)
+        return DrugDiscoveryAPI.generate_molecule_image(req.smiles)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -210,7 +224,7 @@ async def complete_workflow(req: CompleteWorkflowRequest):
     if not req.disease:
         raise HTTPException(status_code=400, detail="缺少 disease 参数")
     try:
-        return services_func.DrugDiscoveryAPI.complete_workflow(
+        return DrugDiscoveryAPI.complete_workflow(
             req.disease, req.selected_targets
         )
     except Exception as e:
@@ -220,7 +234,7 @@ async def complete_workflow(req: CompleteWorkflowRequest):
 @app.get("/api/decision-explanations")
 async def decision_explanations():
     try:
-        return services_func.DrugDiscoveryAPI.get_decision_explanations()
+        return DrugDiscoveryAPI.get_decision_explanations()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
