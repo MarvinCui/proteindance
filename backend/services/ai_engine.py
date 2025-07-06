@@ -262,6 +262,60 @@ class AIEngine:
             # 返回第一个化合物作为默认选择
             return smiles_list[0], smiles_list[0], f"选择失败: {str(e)}"
 
+    def generate_ligand_smiles(self, protein_target: str, disease_context: str, num_smiles: int = 10) -> List[str]:
+        """
+        使用AI生成潜在的配体SMILES
+
+        Args:
+            protein_target: 靶点蛋白名称
+            disease_context: 疾病背景
+            num_smiles: 希望生成的SMILES数量
+
+        Returns:
+            SMILES字符串列表
+        """
+        try:
+            if not HAS_OPENAI or not self.client:
+                logger.warning("OpenAI未配置，无法生成SMILES")
+                return []
+
+            print_info(f"正在为靶点「{protein_target}」生成新的配体分子...")
+
+            prompt = f"""
+            作为一名药物化学家，请为靶点蛋白 {protein_target}（在 {disease_context} 疾病中）设计 {num_smiles} 个新颖的、具有潜在活性的、符合Lipinski药物相似性规则的类药小分子。
+
+            请直接返回SMILES字符串列表，每行一个，不要包含任何其��文字、标题或序号。
+
+            示例:
+            CCOc1ccccc1C(=O)O
+            CN1C(=O)CN=C(c2ccccc2)c2cc(Cl)ccc12
+            """
+
+            # 调用AI API
+            with show_spinner("AI正在设计分子..."):
+                response = self.client.chat.completions.create(
+                    model="deepseek-ai/DeepSeek-V3",  # 使用指定的模型
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.6,  # 提高一点创造性
+                    max_tokens=1500
+                )
+
+            text = response.choices[0].message.content.strip()
+            
+            # 解析SMILES列表
+            smiles_list = [line.strip() for line in text.split('\n') if self._validate_smiles(line.strip())]
+
+            if not smiles_list:
+                logger.warning("AI未能生成有效的SMILES")
+                return []
+
+            logger.info(f"AI成功生成 {len(smiles_list)} 个SMILES")
+            return smiles_list[:num_smiles]
+
+        except Exception as e:
+            logger.error(f"AI生成SMILES失败: {str(e)}")
+            raise APIError(f"AI生成SMILES失败: {str(e)}")
+
     def ai_explain_results(self, workflow_data: Dict[str, Any]) -> str:
         """
         生成工作流结果的AI解释

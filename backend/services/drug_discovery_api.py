@@ -283,11 +283,40 @@ class DrugDiscoveryAPI:
 
             # 检查结果
             if not smiles_list:
-                logger.error(f"❌ [LIGAND_DEBUG] 未获取到任何配体")
-                return {
-                    "success": False,
-                    "error": "无法获取或生成任何配体"
-                }
+                logger.warning(f"❌ [LIGAND_DEBUG] 未从ChEMBL或默认列表获取到配体，尝试AI生成...")
+                # 尝试使用AI生成
+                protein_target = uniprot_acc if uniprot_acc else "a relevant protein target"
+                disease_context = "a relevant disease" # 在当前函数中无法直接获取疾病上下文，使用通用描述
+                
+                try:
+                    smiles_list = api.ai_engine.generate_ligand_smiles(
+                        protein_target=protein_target,
+                        disease_context=disease_context,
+                        num_smiles=10
+                    )
+                    logger.info(f"🤖 [LIGAND_DEBUG] AI生成了 {len(smiles_list)} 个配体")
+                    
+                    # 如果AI也未能生成，则返回最终错误
+                    if not smiles_list:
+                        logger.error(f"❌ [LIGAND_DEBUG] AI也未能生成任何配体")
+                        return {
+                            "success": False,
+                            "error": "无法获取或生成任何配体"
+                        }
+                    
+                    # 如果AI生成成功，将其标记为ai_generated
+                    logger.info(f"✅ [LIGAND_DEBUG] 成功通过AI获取{len(smiles_list)}个配体")
+                    return {
+                        "success": True,
+                        "ai_generated_smiles": smiles_list
+                    }
+
+                except Exception as ai_error:
+                    logger.error(f"❌ [LIGAND_DEBUG] AI生成配体时出错: {ai_error}")
+                    return {
+                        "success": False,
+                        "error": "无法获取或生成任何配体"
+                    }
 
             logger.info(f"✅ [LIGAND_DEBUG] 成功获取{len(smiles_list)}个配体")
 
