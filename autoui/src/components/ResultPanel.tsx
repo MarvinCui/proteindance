@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from '@emotion/styled'
+import ProteinViewerCombined from './ProteinViewerCombined'
 
 const Panel = styled.div`
   background: white;
@@ -165,17 +166,29 @@ const ResultPanel: React.FC<Props> = ({
         </Section>
       )}
 
-      {(moleculeImage || dockingImage) && (
+      {(moleculeImage || dockingImage || structurePath) && (
         <Section>
           <SectionTitle>结构可视化</SectionTitle>
-          <ImageContainer>
-            {moleculeImage && (
-              <img src={`data:image/png;base64,${moleculeImage}`} alt="优化后的分子结构" />
-            )}
-            {dockingImage && (
-              <img src={`data:image/png;base64,${dockingImage}`} alt="蛋白质-配体对接" />
-            )}
-          </ImageContainer>
+          
+          {/* 蛋白质结构可视化 */}
+          {structurePath && (
+            <ProteinViewerCombined 
+              structurePath={structurePath}
+              pocketCenter={pocketCenter}
+            />
+          )}
+          
+          {/* 2D分子结构图像 */}
+          {(moleculeImage || dockingImage) && (
+            <ImageContainer>
+              {moleculeImage && (
+                <img src={`data:image/png;base64,${moleculeImage}`} alt="优化后的分子结构" />
+              )}
+              {dockingImage && (
+                <img src={`data:image/png;base64,${dockingImage}`} alt="蛋白质-配体对接" />
+              )}
+            </ImageContainer>
+          )}
         </Section>
       )}
 

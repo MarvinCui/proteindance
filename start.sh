@@ -122,23 +122,26 @@ start_backend() {
     source "$(conda info --base)/etc/profile.d/conda.sh"
     conda activate "$CONDA_ENV_PATH"
     
-    # 启动后端服务（后台运行）
+    # 启动后端服务（显示实时日志）
     echo -e "${YELLOW}后端服务启动中... (端口: $BACKEND_PORT)${NC}"
-    nohup uvicorn backend.app:app --host "$BACKEND_HOST" --port "$BACKEND_PORT" --reload > backend.log 2>&1 &
+    echo -e "${BLUE}📝 后端日志将显示在下方，按Ctrl+C可停止所有服务${NC}"
+    echo -e "${BLUE}========================${NC}"
+    
+    # 启动后端服务（后台运行，但将日志输出到终端和文件）
+    uvicorn backend.app:app --host "$BACKEND_HOST" --port "$BACKEND_PORT" --reload 2>&1 | tee backend.log &
     BACKEND_PID=$!
     
     # 等待后端启动
     echo -e "${YELLOW}等待后端服务启动...${NC}"
-    sleep 5
+    sleep 3
     
-    # 检查后端是否启动成功
-    if curl -s "http://localhost:$BACKEND_PORT/docs" > /dev/null; then
+    # 检查后端是否启动成功（简化检查，因为日志已经可见）
+    if curl -s "http://localhost:$BACKEND_PORT/docs" > /dev/null 2>&1; then
         echo -e "${GREEN}✅ 后端服务启动成功 (PID: $BACKEND_PID)${NC}"
         echo -e "${GREEN}📖 API文档: http://localhost:$BACKEND_PORT/docs${NC}"
     else
-        echo -e "${RED}❌ 后端服务启动失败${NC}"
-        echo -e "${YELLOW}查看日志: tail -f backend.log${NC}"
-        exit 1
+        echo -e "${RED}❌ 后端服务可能启动失败，请查看上方日志信息${NC}"
+        # 不退出，让用户看到错误信息
     fi
 }
 

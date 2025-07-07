@@ -1,12 +1,16 @@
 # backend/app.py
 
 import os
+import logging
 from pathlib import Path
 from typing import List, Optional, Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 # Import organized backend services
 from .services.drug_discovery_api import DrugDiscoveryAPI
@@ -57,6 +61,7 @@ class PredictPocketsRequest(BaseModel):
 class LigandsRequest(BaseModel):
     uniprot_acc: Optional[str] = None
     custom_smiles: Optional[List[str]] = None
+    disease: Optional[str] = None
 
 
 class AIDecisionRequest(BaseModel):
@@ -141,6 +146,21 @@ async def target_explanation(req: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/verified-target")
+async def get_verified_target(req: dict):
+    try:
+        disease = req.get("disease")
+        if not disease:
+            raise HTTPException(status_code=400, detail="缺少disease参数")
+
+        # 使用DrugDiscoveryAPI获取已验证的靶点
+        api = DrugDiscoveryAPI()
+        result = api.get_verified_target(disease)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/download-structure")
 async def download_structure(req: dict):
     try:
@@ -167,7 +187,7 @@ async def get_ligands(req: LigandsRequest):
         raise HTTPException(status_code=400, detail="必须提供 uniprot_acc 或 custom_smiles")
     try:
         return DrugDiscoveryAPI.get_ligands(
-            req.uniprot_acc, req.custom_smiles
+            req.uniprot_acc, req.custom_smiles, req.disease
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -235,6 +255,156 @@ async def complete_workflow(req: CompleteWorkflowRequest):
 async def decision_explanations():
     try:
         return DrugDiscoveryAPI.get_decision_explanations()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/structure/{structure_identifier:path}")
+async def get_structure_file(structure_identifier: str):
+    """
+    获取蛋白质结构文件内容用于3D可视化
+    支持PDB ID (如 1B8M) 或完整文件路径
+    """
+    try:
+        import urllib.parse
+        import glob
+        
+        decoded_identifier = urllib.parse.unquote(structure_identifier)
+        
+        # 如果是完整路径，直接使用
+        if decoded_identifier.startswith('/'):
+            file_path = Path(decoded_identifier)
+        else:
+            # 如果是PDB ID，在临时目录中查找对应文件
+            pdb_id = decoded_identifier.upper()
+            
+            # 可能的文件名格式
+            possible_patterns = [
+                f"pdb{pdb_id.lower()}.ent",  # pdb1b8m.ent
+                f"{pdb_id.lower()}.pdb",     # 1b8m.pdb  
+                f"{pdb_id.upper()}.pdb",     # 1B8M.pdb
+                f"pdb{pdb_id.upper()}.ent",  # pdb1B8M.ent
+            ]
+            
+            file_path = None
+            # 在临时目录中搜索
+            search_dir = settings.TMP_DIR
+            for pattern in possible_patterns:
+                matches = glob.glob(str(search_dir / "**" / pattern), recursive=True)
+                if matches:
+                    file_path = Path(matches[0])
+                    break
+            
+            if not file_path:
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"未找到结构文件: {structure_identifier}. 搜索目录: {search_dir}"
+                )
+        
+        # 验证文件存在
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail=f"结构文件不存在: {file_path}")
+        
+        # 安全检查：只允许访问临时目录中的文件
+        if not str(file_path.resolve()).startswith(str(settings.TMP_DIR.resolve())):
+            raise HTTPException(status_code=403, detail="无权访问该文件")
+        
+        # 返回文件内容
+        return FileResponse(
+            path=file_path,
+            media_type="text/plain",
+            filename=file_path.name
+        )
+    except HTTPException:
+        # 重新抛出HTTP异常
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取结构文件时发生错误: {str(e)}")
+
+
+@app.get("/api/structure-debug/{structure_identifier:path}")
+async def debug_structure_file(structure_identifier: str):
+    """
+    调试结构文件访问 - 显示详细信息
+    """
+    try:
+        import urllib.parse
+        import glob
+        
+        decoded_identifier = urllib.parse.unquote(structure_identifier)
+        
+        debug_info = {
+            "identifier": structure_identifier,
+            "decoded": decoded_identifier,
+            "tmp_dir": str(settings.TMP_DIR),
+            "tmp_dir_exists": settings.TMP_DIR.exists(),
+            "found_files": [],
+            "searched_patterns": []
+        }
+        
+        # 如果是PDB ID，在临时目录中查找对应文件
+        if not decoded_identifier.startswith('/'):
+            pdb_id = decoded_identifier.upper()
+            
+            # 可能的文件名格式
+            possible_patterns = [
+                f"pdb{pdb_id.lower()}.ent",  # pdb1b8m.ent
+                f"{pdb_id.lower()}.pdb",     # 1b8m.pdb  
+                f"{pdb_id.upper()}.pdb",     # 1B8M.pdb
+                f"pdb{pdb_id.upper()}.ent",  # pdb1B8M.ent
+            ]
+            
+            search_dir = settings.TMP_DIR
+            for pattern in possible_patterns:
+                debug_info["searched_patterns"].append(f"{search_dir}/**/{pattern}")
+                matches = glob.glob(str(search_dir / "**" / pattern), recursive=True)
+                if matches:
+                    debug_info["found_files"].extend(matches)
+        
+        return debug_info
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/api/protein-visualization")
+async def generate_protein_visualization(req: dict):
+    """
+    生成蛋白质3D可视化HTML
+    """
+    try:
+        structure_path = req.get("structure_path")
+        pocket_center = req.get("pocket_center")
+        
+        if not structure_path:
+            raise HTTPException(status_code=400, detail="缺少structure_path参数")
+        
+        # 使用后端可视化引擎
+        api = DrugDiscoveryAPI()
+        
+        # 读取结构文件
+        file_path = Path(structure_path)
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="结构文件不存在")
+        
+        with open(file_path, 'r') as f:
+            pdb_data = f.read()
+        
+        # 生成3D查看器HTML
+        html = api.visualization_engine.generate_3d_viewer(
+            smiles=None,  # 仅显示蛋白质
+            pdb_data=pdb_data
+        )
+        
+        # 可以在未来版本中使用pocket_center添加口袋标记
+        if pocket_center:
+            logger.info(f"口袋中心坐标: {pocket_center}")
+        
+        return {
+            "success": True,
+            "html": html,
+            "structure_path": structure_path
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -16,8 +16,8 @@ export interface AiGeneratedLigand {
   is_ai_generated: boolean;
 }
 
-const API_BASE = 'http://172.20.10.3:5001/api';
-// const API_BASE = 'http://172.20.10.3:5001/api';
+const API_BASE = 'http://192.168.1.100:5001/api';
+// const API_BASE = 'http://192.168.1.100:5001/api';
 
 
 async function postJson<T>(path: string, body: any): Promise<ApiResponse<T>> {
@@ -111,4 +111,8 @@ export async function getDecisionExplanations() {
 
 export async function getTargetExplanation(gene_symbol: string, disease: string) {
   return postJson<{ explanation: string }>('/target-explanation', { gene_symbol, disease });
+}
+
+export async function generateProteinVisualization(structure_path: string, pocket_center?: [number, number, number]) {
+  return postJson<{ html: string }>('/protein-visualization', { structure_path, pocket_center });
 }

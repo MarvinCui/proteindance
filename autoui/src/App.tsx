@@ -3,7 +3,7 @@ import WorkflowStepper from './components/WorkflowStepper'
 import StatusPanel from './components/StatusPanel'
 import DecisionPanel from './components/DecisionPanel'
 import LogPanel from './components/LogPanel'
-import HistoryPanel from './components/HistoryPanel'
+import SidePanel from './components/SidePanel'
 import InnovationSlider from './components/InnovationSlider'
 import * as api from './services/api'
 import ResultPanel from './components/ResultPanel'
@@ -35,6 +35,10 @@ export default function App() {
   // 分离记录选择理由和优化解释
   const [selectionReason, setSelectionReason] = useState<string | null>(null)
   const [optimizationExplanation, setOptimizationExplanation] = useState<string | null>(null)
+  // 新增状态用于实时结构显示
+  const [currentStructurePath, setCurrentStructurePath] = useState<string | null>(null)
+  const [currentPocketCenter, setCurrentPocketCenter] = useState<[number, number, number] | null>(null)
+  const [currentProteinName, setCurrentProteinName] = useState<string>('蛋白质结构')
 
   const addLog = (
     logStep: number,
@@ -84,6 +88,10 @@ export default function App() {
     // 重置靶点状态
     setAllTargets([])
     setTriedTargets([])
+    // 重置结构显示状态
+    setCurrentStructurePath(null)
+    setCurrentPocketCenter(null)
+    setCurrentProteinName('蛋白质结构')
 
     try {
       // STEP 1: 靶点识别
@@ -232,6 +240,10 @@ export default function App() {
       const modelPath = (sRes as any).structure_path ?? (sRes as any).pdb_ids[0]
       addLog(3, '状态', `结构文件路径：${modelPath}`)
       setWorkflowState({ uniprot_acc: acc, structure_path: modelPath })
+      
+      // 立即显示结构
+      setCurrentStructurePath(modelPath)
+      setCurrentProteinName(`${currentTarget} 蛋白质`)
 
       // STEP 5: 口袋预测
       setStep(4)
@@ -239,6 +251,12 @@ export default function App() {
       const pRes = await api.predictPockets(modelPath)
       addLog(4, '日志', JSON.stringify(pRes))
       if (!pRes.success) throw new Error(pRes.error)
+      
+      // 检查是否找到了口袋
+      if (!pRes.pockets || pRes.pockets.length === 0) {
+        throw new Error('未检测到合适的结合口袋，请尝试使用其他蛋白结构')
+      }
+      
       addLog(4, '状态', `检测到 ${pRes.pockets.length} 个候选口袋`)
 
       // AI 决策 选口袋
@@ -251,8 +269,19 @@ export default function App() {
       })
       addLog(5, '日志', JSON.stringify(pd))
       if (!pd.success) throw new Error(pd.error)
-      setDecisionPocket({ ...pd, pocket_center: pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center })
+      
+      // 安全地查找选择的口袋
+      const selectedIndex = pocketOpts.indexOf(pd.selected_option)
+      if (selectedIndex === -1 || selectedIndex >= pRes.pockets.length) {
+        throw new Error(`选择的口袋索引无效: ${pd.selected_option}`)
+      }
+      const selectedPocket = pRes.pockets[selectedIndex]
+      
+      setDecisionPocket({ ...pd, pocket_center: selectedPocket.center })
       addLog(5, '决策', `选择: ${pd.selected_option} 理由: ${pd.explanation}`)
+      
+      // 更新结构显示，包含口袋中心
+      setCurrentPocketCenter(selectedPocket.center)
 
       // STEP 6: 配体获取
       setStep(5)
@@ -303,7 +332,7 @@ export default function App() {
         smiles_list: allSmiles,
         disease,
         protein: currentTarget,
-        pocket_center: pRes.pockets[pocketOpts.indexOf(pd.selected_option)].center
+        pocket_center: selectedPocket.center
       })
       addLog(6, '日志', JSON.stringify(cd))
       if (!cd.success) throw new Error(cd.error)
@@ -361,16 +390,21 @@ export default function App() {
         }
         .wrapper {
           display: flex; justify-content: center;
-          align-items: flex-start; padding: 40px; gap: 24px;
+          align-items: stretch; padding: 20px; gap: 24px;
+          min-height: 100vh;
+          max-width: 1400px;
+          margin: 0 auto;
         }
         .app {
           position: relative;
-          width: 100%; max-width: 800px;
+          flex: 1;
           background: #fff; border-radius: 12px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.1);
           padding: 32px; font-family: 'Segoe UI', sans-serif;
           border: 2px solid transparent;
           overflow: hidden; z-index: 1;
+          height: fit-content;
+          align-self: flex-start;
         }
         .app.active {
           animation: borderBreathe 2.5s ease-in-out infinite;
@@ -459,10 +493,33 @@ export default function App() {
           transform: translateY(0) scale(0.97);
         }
 
+        /* 侧边栏样式 */
+        .side-panel {
+          width: 380px;
+          flex-shrink: 0;
+          height: 100vh;
+          max-height: 100vh;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-self: stretch;
+        }
+
         /* Responsive adjustments */
+        @media (max-width: 1200px) { /* Large tablet */
+          .wrapper {
+            flex-direction: column;
+            gap: 20px;
+          }
+          .side-panel {
+            width: 100%;
+            order: 2;
+          }
+        }
+
         @media (max-width: 768px) { /* Tablet and smaller */
           .wrapper {
-            padding: 20px;
+            padding: 15px;
             gap: 16px;
           }
           .app {
@@ -493,12 +550,15 @@ export default function App() {
         @media (max-width: 480px) { /* Mobile phones */
           .wrapper {
             padding: 10px;
-            flex-direction: column; /* Stack items vertically */
-            align-items: center; /* Center items when stacked */
+            flex-direction: column;
+            gap: 15px;
           }
           .app {
             padding: 15px;
-            width: 95%; /* Main app takes 95% width on mobile */
+          }
+          .side-panel {
+            width: 100%;
+            order: 2;
           }
           .title-row h1 {
             font-size: 20px; 
@@ -581,7 +641,15 @@ export default function App() {
           )}
         </div>
 
-        <HistoryPanel logs={logs} />
+        <div className="side-panel">
+          <SidePanel 
+            logs={logs} 
+            structurePath={currentStructurePath}
+            pocketCenter={currentPocketCenter}
+            currentStep={step}
+            proteinName={currentProteinName}
+          />
+        </div>
       </div>
     </>
   )

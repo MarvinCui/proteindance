@@ -16,8 +16,8 @@ export interface AiGeneratedLigand {
   is_ai_generated: boolean;
 }
 
-const API_BASE = 'http://localhost:5001/api';
-// const API_BASE = '/api';
+const API_BASE = 'http://172.20.10.3:5001/api';
+// const API_BASE = 'http://172.20.10.3:5001/api';
 
 
 async function postJson<T>(path: string, body: any): Promise<ApiResponse<T>> {

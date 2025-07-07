@@ -99,38 +99,76 @@ class DrugDiscoveryAPI:
             RequestValidator.validate_structure_request({"uniprot_acc": uniprot_acc})
             
             api = DrugDiscoveryAPI()
+            logger.info(f"开始获取UniProt {uniprot_acc}的结构来源...")
             
-            # 获取PDB结构
-            pdb_ids = api.pharma_engine.get_pdb_ids_for_uniprot(uniprot_acc)
-            
-            # 检查AlphaFold可用性（仅在没有PDB时）
+            # 首先尝试AlphaFold（更可靠的来源）
             af_available = False
             af_path = None
-            if not pdb_ids:
+            try:
+                logger.info(f"尝试获取AlphaFold结构...")
                 af_path = api.pharma_engine.download_alphafold(
                     uniprot_acc, 
-                    dest_dir=settings.TMP_DIR / "temp_check"
+                    dest_dir=settings.TMP_DIR
                 )
                 af_available = af_path is not None
+                logger.info(f"AlphaFold可用性: {af_available}")
+            except Exception as e:
+                logger.warning(f"AlphaFold获取失败: {str(e)}")
             
+            # 尝试获取PDB结构（如果AlphaFold失败）
+            pdb_ids = []
+            if not af_available:
+                try:
+                    logger.info(f"尝试获取PDB结构...")
+                    pdb_ids = api.pharma_engine.get_pdb_ids_for_uniprot(uniprot_acc)
+                    logger.info(f"找到{len(pdb_ids)}个PDB结构")
+                except Exception as e:
+                    logger.warning(f"PDB查询失败: {str(e)}")
+                    pdb_ids = []
+            
+            # 如果都没有找到，使用备用策略
+            if not af_available and not pdb_ids:
+                logger.warning(f"未找到{uniprot_acc}的结构，尝试通过基因符号查找...")
+                # 可以在这里添加通过基因符号查找的逻辑
+                return {
+                    "success": False,
+                    "error": f"未找到UniProt {uniprot_acc}对应的蛋白质结构（AlphaFold和PDB均不可用）",
+                    "alphafold_available": False,
+                    "pdb_ids": []
+                }
+            
+            # 如果有AlphaFold，优先使用它
+            if af_available:
+                return {
+                    "success": True,
+                    "alphafold_available": True,
+                    "pdb_ids": [],
+                    "structure_path": str(af_path)
+                }
+            
+            # 否则返回PDB IDs
             return {
                 "success": True,
-                "alphafold_available": af_available,
+                "alphafold_available": False,
                 "pdb_ids": pdb_ids,
-                "structure_path": str(af_path) if af_path else None
+                "structure_path": pdb_ids[0] if pdb_ids else None
             }
             
         except ValidationError as e:
             logger.error(f"请求验证失败: {str(e)}")
             return {
                 "success": False,
-                "error": str(e)
+                "error": str(e),
+                "alphafold_available": False,
+                "pdb_ids": []
             }
         except Exception as e:
             logger.error(f"获取结构来源失败: {str(e)}")
             return {
                 "success": False,
-                "error": str(e)
+                "error": str(e),
+                "alphafold_available": False,
+                "pdb_ids": []
             }
 
     @staticmethod
@@ -255,15 +293,16 @@ class DrugDiscoveryAPI:
             }
     
     @staticmethod
-    def get_ligands(uniprot_acc: Optional[str] = None, custom_smiles: Optional[List[str]] = None) -> Dict:
+    def get_ligands(uniprot_acc: Optional[str] = None, custom_smiles: Optional[List[str]] = None, disease: Optional[str] = None) -> Dict:
         """获取配体"""
         try:
-            logger.info(f"🔍 [LIGAND_DEBUG] 开始获取配体，UniProt: {uniprot_acc}, 自定义SMILES: {custom_smiles}")
+            logger.info(f"🔍 [LIGAND_DEBUG] 开始获取配体，UniProt: {uniprot_acc}, 自定义SMILES: {custom_smiles}, 疾病: {disease}")
 
             # 验证请求
             RequestValidator.validate_ligand_request({
                 "uniprot_acc": uniprot_acc,
-                "custom_smiles": custom_smiles
+                "custom_smiles": custom_smiles,
+                "disease": disease
             })
             logger.info(f"✅ [LIGAND_DEBUG] 请求验证通过")
 
@@ -286,7 +325,7 @@ class DrugDiscoveryAPI:
                 logger.warning(f"❌ [LIGAND_DEBUG] 未从ChEMBL或默认列表获取到配体，尝试AI生成...")
                 # 尝试使用AI生成
                 protein_target = uniprot_acc if uniprot_acc else "a relevant protein target"
-                disease_context = "a relevant disease" # 在当前函数中无法直接获取疾病上下文，使用通用描述
+                disease_context = disease if disease else "a relevant disease"
                 
                 try:
                     smiles_list = api.ai_engine.generate_ligand_smiles(
@@ -504,6 +543,80 @@ class DrugDiscoveryAPI:
             
         except Exception as e:
             logger.error(f"获取决策解释失败: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def get_verified_target(self, disease: str) -> Dict:
+        """获取已验证的靶点"""
+        try:
+            # 这里可以使用AI引擎来获取一个已验证的靶点
+            # 作为备选方案，当常规靶点查找失败时使用
+            
+            # 常见疾病的已验证靶点映射
+            verified_targets = {
+                "癌症": {
+                    "symbol": "EGFR",
+                    "uniprot_acc": "P00533",
+                    "name": "Epidermal growth factor receptor",
+                    "innovation_score": 3
+                },
+                "阿尔茨海默病": {
+                    "symbol": "APP",
+                    "uniprot_acc": "P05067", 
+                    "name": "Amyloid-beta precursor protein",
+                    "innovation_score": 6
+                },
+                "糖尿病": {
+                    "symbol": "INS",
+                    "uniprot_acc": "P01308",
+                    "name": "Insulin",
+                    "innovation_score": 2
+                },
+                "高血压": {
+                    "symbol": "ACE",
+                    "uniprot_acc": "P12821",
+                    "name": "Angiotensin-converting enzyme",
+                    "innovation_score": 1
+                }
+            }
+            
+            # 默认靶点
+            default_target = {
+                "symbol": "TP53",
+                "uniprot_acc": "P04637",
+                "name": "Tumor protein p53",
+                "innovation_score": 4
+            }
+            
+            # 尝试匹配疾病
+            target = None
+            for disease_key, target_info in verified_targets.items():
+                if disease_key in disease:
+                    target = target_info
+                    break
+            
+            if not target:
+                target = default_target
+            
+            # 构造与UniProt entries相同的格式
+            entries = [{
+                "acc": target["uniprot_acc"],
+                "name": target["name"]
+            }]
+            
+            return {
+                "success": True,
+                "symbol": target["symbol"],
+                "uniprot_acc": target["uniprot_acc"],
+                "name": target["name"],
+                "innovation_score": target["innovation_score"],
+                "entries": entries
+            }
+            
+        except Exception as e:
+            logger.error(f"获取已验证靶点失败: {str(e)}")
             return {
                 "success": False,
                 "error": str(e)

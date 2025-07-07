@@ -134,17 +134,40 @@ class PharmaEngine:
                 data=json.dumps(query), 
                 timeout=30
             )
-            response.raise_for_status()
             
-            ids = [item["identifier"] for item in response.json().get("result_set", [])]
+            # 检查响应状态
+            logger.info(f"RCSB API响应状态: {response.status_code}")
+            
+            if response.status_code != 200:
+                logger.warning(f"RCSB API返回非200状态: {response.status_code}")
+                return []
+            
+            # 检查响应内容
+            response_text = response.text.strip()
+            if not response_text:
+                logger.warning("RCSB API返回空响应")
+                return []
+            
+            try:
+                response_data = response.json()
+            except json.JSONDecodeError as e:
+                logger.warning(f"RCSB API响应JSON解析失败: {e}, 响应内容: {response_text[:200]}")
+                return []
+            
+            # 获取结果
+            result_set = response_data.get("result_set", [])
+            ids = [item["identifier"] for item in result_set if "identifier" in item]
             result = ids[:max_ids]
             
-            logger.info(f"找到{len(result)}个PDB结构")
+            logger.info(f"找到{len(result)}个PDB结构: {result}")
             return result
             
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"RCSB API网络请求失败: {str(e)}")
+            return []
         except Exception as e:
-            logger.error(f"PDB ID查询失败: {str(e)}")
-            raise APIError(f"PDB ID查询失败: {str(e)}")
+            logger.warning(f"PDB ID查询失败: {str(e)}")
+            return []
     
     def get_pdb_ids_for_gene(self, gene_symbol: str, max_ids: int = 10) -> List[str]:
         """
@@ -258,21 +281,42 @@ class PharmaEngine:
             url = f"{self.alphafold_api}/AF-{uniprot_acc}-F1-model_v4.pdb"
             out_path = dest_dir / f"{uniprot_acc}_AF.pdb"
             
+            logger.info(f"请求AlphaFold URL: {url}")
+            
             response = requests.get(url, stream=True, timeout=60)
             
-            if response.status_code == 200 and int(response.headers.get("Content-Length", 0)) > 1000:
-                with open(out_path, "wb") as f:
-                    for chunk in response.iter_content(8192):
-                        f.write(chunk)
-                
-                logger.info(f"AlphaFold结构下载成功: {out_path}")
-                return out_path
+            logger.info(f"AlphaFold响应状态: {response.status_code}")
+            logger.info(f"AlphaFold响应头Content-Length: {response.headers.get('Content-Length', 'N/A')}")
+            
+            if response.status_code == 200:
+                content_length = int(response.headers.get("Content-Length", 0))
+                if content_length > 1000:  # 确保文件不是空的或错误页面
+                    with open(out_path, "wb") as f:
+                        for chunk in response.iter_content(8192):
+                            f.write(chunk)
+                    
+                    # 验证下载的文件
+                    if out_path.exists() and out_path.stat().st_size > 1000:
+                        logger.info(f"AlphaFold结构下载成功: {out_path} (大小: {out_path.stat().st_size} bytes)")
+                        return out_path
+                    else:
+                        logger.warning(f"AlphaFold下载的文件太小或不存在: {uniprot_acc}")
+                        return None
+                else:
+                    logger.warning(f"AlphaFold响应内容太小: {uniprot_acc} (Content-Length: {content_length})")
+                    return None
+            elif response.status_code == 404:
+                logger.warning(f"AlphaFold结构不存在: {uniprot_acc}")
+                return None
             else:
-                logger.warning(f"AlphaFold结构不可用: {uniprot_acc}")
+                logger.warning(f"AlphaFold请求失败: {uniprot_acc}, 状态码: {response.status_code}")
                 return None
                 
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"AlphaFold网络请求失败: {str(e)}")
+            return None
         except Exception as e:
-            logger.error(f"AlphaFold下载失败: {str(e)}")
+            logger.warning(f"AlphaFold下载失败: {str(e)}")
             return None
 
     def run_p2rank(self, pdb_path: Path, prank_bin: Optional[str] = None) -> List[Dict]:

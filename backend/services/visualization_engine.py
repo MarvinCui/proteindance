@@ -170,12 +170,12 @@ class VisualizationEngine:
             logger.error(f"显示分子信息失败: {str(e)}")
             print_error(f"显示分子信息失败: {str(e)}")
     
-    def generate_3d_viewer(self, smiles: str, pdb_data: Optional[str] = None) -> Optional[str]:
+    def generate_3d_viewer(self, smiles: Optional[str] = None, pdb_data: Optional[str] = None) -> Optional[str]:
         """
         生成3D分子查看器HTML
         
         Args:
-            smiles: SMILES字符串
+            smiles: SMILES字符串（可选）
             pdb_data: PDB数据（可选）
         
         Returns:
@@ -186,33 +186,36 @@ class VisualizationEngine:
                 logger.warning("py3Dmol未安装，无法生成3D查看器")
                 return None
             
-            if not HAS_RDKIT:
-                logger.warning("RDKit未安装，无法生成3D结构")
-                return None
-            
-            # 生成3D结构
-            mol = Chem.MolFromSmiles(smiles)
-            if not mol:
-                raise ProcessingError(f"无法从SMILES生成分子: {smiles}")
-            
-            mol = Chem.AddHs(mol)
-            AllChem.EmbedMolecule(mol, AllChem.ETKDG())
-            AllChem.UFFOptimizeMolecule(mol)
-            
-            # 转换为SDF格式
-            sdf_data = Chem.MolToMolBlock(mol)
-            
             # 创建3D查看器
-            viewer = py3Dmol.view(width=600, height=400)
-            viewer.addModel(sdf_data, 'sdf')
-            viewer.setStyle({'stick': {}})
-            viewer.zoomTo()
+            viewer = py3Dmol.view(width=800, height=600)
             
-            # 如果有PDB数据，也添加到查看器
+            # 添加小分子（如果提供）
+            if smiles:
+                if not HAS_RDKIT:
+                    logger.warning("RDKit未安装，无法生成3D结构")
+                    return None
+                
+                # 生成3D结构
+                mol = Chem.MolFromSmiles(smiles)
+                if not mol:
+                    raise ProcessingError(f"无法从SMILES生成分子: {smiles}")
+                
+                mol = Chem.AddHs(mol)
+                AllChem.EmbedMolecule(mol, AllChem.ETKDG())
+                AllChem.UFFOptimizeMolecule(mol)
+                
+                # 转换为SDF格式
+                sdf_data = Chem.MolToMolBlock(mol)
+                viewer.addModel(sdf_data, 'sdf')
+                viewer.setStyle({'stick': {}})
+            
+            # 添加蛋白质（如果提供）
             if pdb_data:
                 viewer.addModel(pdb_data, 'pdb')
-                viewer.setStyle({'model': 1}, {'cartoon': {'color': 'spectrum'}})
+                model_index = 1 if smiles else 0
+                viewer.setStyle({'model': model_index}, {'cartoon': {'color': 'spectrum'}})
             
+            viewer.zoomTo()
             return viewer._make_html()
             
         except Exception as e:
