@@ -5,8 +5,8 @@ import FullscreenProteinViewer from './FullscreenProteinViewer'
 
 const ViewerContainer = styled.div`
   background: white;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   height: 100%;
   display: flex;
@@ -20,13 +20,13 @@ const TitleRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 2px solid rgba(79,70,229,0.2);
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(79,70,229,0.2);
 `
 
 const ViewerTitle = styled.h3`
-  font-size: 16px;
+  font-size: 13px;
   color: #4f46e5;
   margin: 0;
   flex: 1;
@@ -36,15 +36,15 @@ const ViewerTitle = styled.h3`
 const ExpandButton = styled.button`
   background: none;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 6px 8px;
+  border-radius: 4px;
+  padding: 3px 6px;
   cursor: pointer;
   color: #64748b;
-  font-size: 12px;
+  font-size: 10px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   
   &:hover {
     background: #f1f5f9;
@@ -71,24 +71,24 @@ const PlaceholderContainer = styled.div`
   align-items: center;
   justify-content: center;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 2px dashed #d1d5db;
   flex-direction: column;
   color: #6b7280;
   text-align: center;
-  padding: 20px;
+  padding: 12px;
 `
 
 const PlaceholderIcon = styled.div`
-  font-size: 48px;
-  margin-bottom: 12px;
+  font-size: 32px;
+  margin-bottom: 8px;
   opacity: 0.5;
 `
 
 const PlaceholderText = styled.p`
   margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
 `
 
 interface Props {
@@ -147,18 +147,18 @@ const LiveProteinViewer: React.FC<Props> = ({
     <>
       <ViewerContainer>
         <TitleRow>
-          <div style={{ width: '60px' }}></div> {/* 左侧空间平衡 */}
+          <div style={{ width: '40px' }}></div> {/* 左侧空间平衡 */}
           <ViewerTitle>
             实时蛋白质结构
             {pocketCenter && (
               <small style={{ 
                 display: 'block', 
-                fontSize: '12px', 
+                fontSize: '9px', 
                 color: '#6b7280', 
                 fontWeight: 'normal',
-                marginTop: '4px'
+                marginTop: '2px'
               }}>
-                口袋中心: ({pocketCenter.map(n => n.toFixed(1)).join(', ')})
+                口袋: ({pocketCenter.map(n => n.toFixed(1)).join(', ')})
               </small>
             )}
           </ViewerTitle>
@@ -167,7 +167,7 @@ const LiveProteinViewer: React.FC<Props> = ({
             disabled={!structurePath}
             title="全屏查看"
           >
-            🔍 放大
+            🔍
           </ExpandButton>
         </TitleRow>
         {renderContent()}

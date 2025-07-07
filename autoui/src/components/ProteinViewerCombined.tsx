@@ -35,8 +35,8 @@ const ProteinViewerCombined: React.FC<Props> = ({
         </div>
         <div style={{ 
           textAlign: 'center', 
-          marginTop: '8px',
-          fontSize: '12px',
+          marginTop: '4px',
+          fontSize: '10px',
           color: '#6b7280',
           flexShrink: 0
         }}>
@@ -45,10 +45,10 @@ const ProteinViewerCombined: React.FC<Props> = ({
             style={{
               background: 'none',
               border: '1px solid #d1d5db',
-              borderRadius: '4px',
-              padding: '3px 6px',
+              borderRadius: '3px',
+              padding: '2px 4px',
               cursor: 'pointer',
-              fontSize: '11px'
+              fontSize: '9px'
             }}
           >
             信息视图
@@ -71,8 +71,8 @@ const ProteinViewerCombined: React.FC<Props> = ({
       </div>
       <div style={{ 
         textAlign: 'center', 
-        marginTop: '8px',
-        fontSize: '12px',
+        marginTop: '4px',
+        fontSize: '10px',
         color: '#6b7280',
         flexShrink: 0
       }}>
@@ -81,10 +81,10 @@ const ProteinViewerCombined: React.FC<Props> = ({
           style={{
             background: 'none',
             border: '1px solid #d1d5db',
-            borderRadius: '4px',
-            padding: '3px 6px',
+            borderRadius: '3px',
+            padding: '2px 4px',
             cursor: 'pointer',
-            fontSize: '11px'
+            fontSize: '9px'
           }}
         >
           3D视图

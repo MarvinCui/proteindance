@@ -402,7 +402,7 @@ export default function App() {
         }
         .wrapper {
           display: flex; justify-content: center;
-          align-items: stretch; padding: 20px; gap: 24px;
+          align-items: stretch; padding: 8px; gap: 12px;
           min-height: 100vh;
           max-width: 1400px;
           margin: 0 auto;
@@ -410,9 +410,9 @@ export default function App() {
         .app {
           position: relative;
           flex: 1;
-          background: #fff; border-radius: 12px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          padding: 32px; font-family: 'Segoe UI', sans-serif;
+          background: #fff; border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+          padding: 16px; font-family: 'Segoe UI', sans-serif;
           border: 2px solid transparent;
           overflow: hidden; z-index: 1;
           height: fit-content;
@@ -437,18 +437,18 @@ export default function App() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
         }
 
         .title-row h3 {
-          margin: 4px 0 0;
-          font-size: 16px;
+          margin: 2px 0 0;
+          font-size: 14px;
           color: #666;
         }
         
         .designer-credit {
-          margin-top: 6px;
-          font-size: 12px;
+          margin-top: 4px;
+          font-size: 10px;
           color: #9CA3AF;
           font-weight: 500;
           letter-spacing: 0.05em;
@@ -471,31 +471,31 @@ export default function App() {
           50% { opacity: 1; }
         }
         h1 {
-          margin: 0; font-size: 28px; color: #333;
+          margin: 0; font-size: 24px; color: #333;
           transition: color 0.3s;
         }
 
         /* 输入框 / 按钮 动画 */
         .input {
-          display: flex; gap: 16px;
-          justify-content: center; margin-bottom: 32px;
+          display: flex; gap: 12px;
+          justify-content: center; margin-bottom: 16px;
         }
         .input input {
-          flex: 1; padding: 12px; font-size: 16px;
-          border: 1px solid #ccc; border-radius: 8px;
+          flex: 1; padding: 10px; font-size: 14px;
+          border: 1px solid #ccc; border-radius: 6px;
           transition: border-color 0.3s, box-shadow 0.3s;
         }
         .input input:focus {
           border-color: #4f46e5;
-          box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+          box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
           outline: none;
         }
         .input button {
           background: #4f46e5; color: #fff; border: none;
-          padding: 0 24px; border-radius: 8px; font-size: 16px;
+          padding: 0 16px; border-radius: 6px; font-size: 14px;
           cursor: pointer;
           transition: transform 0.2s, box-shadow 0.2s;
-          height: 44px; /* Explicitly set height */
+          height: 38px; /* Explicitly set height */
         }
         .input button:hover {
           transform: translateY(-2px);
@@ -507,7 +507,7 @@ export default function App() {
 
         /* 侧边栏样式 */
         .side-panel {
-          width: 380px;
+          width: 320px;
           flex-shrink: 0;
           height: 100vh;
           max-height: 100vh;
@@ -521,7 +521,7 @@ export default function App() {
         @media (max-width: 1200px) { /* Large tablet */
           .wrapper {
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
           }
           .side-panel {
             width: 100%;
@@ -531,20 +531,20 @@ export default function App() {
 
         @media (max-width: 768px) { /* Tablet and smaller */
           .wrapper {
-            padding: 15px;
-            gap: 16px;
+            padding: 8px;
+            gap: 10px;
           }
           .app {
-            padding: 20px;
+            padding: 12px;
           }
           .input {
             flex-direction: row; /* Keep horizontal layout for all screens */
-            gap: 12px;
+            gap: 8px;
             align-items: center;
           }
           .input input {
             flex: 1;
-            font-size: 15px; /* Slightly smaller font */
+            font-size: 14px; /* Slightly smaller font */
             min-width: 0; /* Allow input to shrink if needed */
           }
           .input button {

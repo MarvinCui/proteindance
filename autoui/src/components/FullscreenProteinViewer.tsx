@@ -35,26 +35,27 @@ const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
+  min-height: 36px;
 `
 
 const ModalTitle = styled.h2`
   margin: 0;
-  font-size: 20px;
+  font-size: 14px;
   color: #1e293b;
-  font-weight: 600;
+  font-weight: 500;
 `
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 18px;
   cursor: pointer;
   color: #64748b;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -69,7 +70,7 @@ const CloseButton = styled.button`
 
 const ModalContent = styled.div`
   flex: 1;
-  padding: 24px;
+  padding: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -84,12 +85,12 @@ const FullscreenViewerContainer = styled.div`
   /* 全屏时调整3D查看器尺寸 */
   .protein-viewer-3d .viewer-frame {
     height: 100% !important;
-    min-height: 400px;
+    min-height: 500px;
   }
   
   .protein-viewer-simple .viewer-frame {
     height: 100% !important;
-    min-height: 300px;
+    min-height: 400px;
   }
   
   /* 确保内容完全可见 */
@@ -101,9 +102,9 @@ const FullscreenViewerContainer = styled.div`
 `
 
 const InfoText = styled.p`
-  margin: 0 0 16px;
+  margin: 0 0 4px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
 `
 
@@ -159,16 +160,6 @@ const FullscreenProteinViewer: React.FC<Props> = ({
         <ModalHeader>
           <ModalTitle>
             {proteinName} - 全屏视图
-            {pocketCenter && (
-              <span style={{ 
-                fontSize: '14px', 
-                color: '#64748b', 
-                fontWeight: 'normal',
-                marginLeft: '12px'
-              }}>
-                口袋中心: ({pocketCenter.map(n => n.toFixed(2)).join(', ')})
-              </span>
-            )}
           </ModalTitle>
           <CloseButton onClick={onClose} title="关闭 (ESC)">
             ×
@@ -179,7 +170,7 @@ const FullscreenProteinViewer: React.FC<Props> = ({
           {structurePath ? (
             <>
               <InfoText>
-                您可以使用鼠标拖拽旋转、滚轮缩放、右键平移来查看结构详情
+                🖱️ 拖拽旋转 | 🔄 滚轮缩放 | 🖱️ 右键平移
               </InfoText>
               <FullscreenViewerContainer>
                 <ProteinViewerCombined 

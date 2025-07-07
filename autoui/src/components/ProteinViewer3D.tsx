@@ -3,8 +3,8 @@ import styled from '@emotion/styled'
 
 const ViewerContainer = styled.div`
   background: white;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin: 0;
   height: 100%;
@@ -14,18 +14,18 @@ const ViewerContainer = styled.div`
 `
 
 const ViewerTitle = styled.h3`
-  font-size: 18px;
+  font-size: 14px;
   color: #4f46e5;
-  margin: 0 0 16px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(79,70,229,0.2);
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(79,70,229,0.2);
 `
 
 const ViewerFrame = styled.div`
   width: 100%;
-  height: 350px;
+  height: 320px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background: #000;
   position: relative;
@@ -49,19 +49,20 @@ const LoadingOverlay = styled.div`
 
 const ControlPanel = styled.div`
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 `
 
 const ControlButton = styled.button`
-  padding: 8px 16px;
+  padding: 4px 8px;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: 4px;
   background: white;
   color: #374151;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 12px;
   
   &:hover {
     background: #f9fafb;
