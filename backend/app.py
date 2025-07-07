@@ -52,6 +52,7 @@ class StructureSourcesResponse(BaseModel):
     alphafold_available: bool
     pdb_ids: List[str]
     structure_path: Optional[str] = None  # 实际下载到的文件路径
+    structure_source: Optional[str] = None  # 结构来源：pdb或alphafold
 
 
 class PredictPocketsRequest(BaseModel):

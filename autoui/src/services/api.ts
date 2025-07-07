@@ -55,7 +55,12 @@ export async function getVerifiedTarget(disease: string) {
 }
 
 export async function getStructureSources(uniprot_acc: string) {
-  return postJson<{ alphafold_available: boolean; pdb_ids: string[] }>('/structure-sources', { uniprot_acc });
+  return postJson<{ 
+    alphafold_available: boolean; 
+    pdb_ids: string[];
+    structure_path?: string;
+    structure_source?: string;
+  }>('/structure-sources', { uniprot_acc });
 }
 
 export async function predictPockets(structure_path: string) {

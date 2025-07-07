@@ -101,11 +101,44 @@ class DrugDiscoveryAPI:
             api = DrugDiscoveryAPI()
             logger.info(f"开始获取UniProt {uniprot_acc}的结构来源...")
             
-            # 首先尝试AlphaFold（更可靠的来源）
+            # 首先尝试PDB结构（实验结构优先）
+            pdb_ids = []
+            pdb_path = None
+            try:
+                logger.info(f"尝试获取PDB结构...")
+                pdb_ids = api.pharma_engine.get_pdb_ids_for_uniprot(uniprot_acc)
+                logger.info(f"找到{len(pdb_ids)}个PDB结构")
+                
+                # 如果找到PDB，下载第一个
+                if pdb_ids:
+                    try:
+                        pdb_path = api.pharma_engine.download_pdb(
+                            pdb_ids[0], 
+                            dest_dir=settings.TMP_DIR
+                        )
+                        logger.info(f"成功下载PDB结构: {pdb_path}")
+                    except Exception as e:
+                        logger.warning(f"PDB下载失败: {str(e)}")
+                        pdb_path = None
+            except Exception as e:
+                logger.warning(f"PDB查询失败: {str(e)}")
+                pdb_ids = []
+            
+            # 如果PDB可用，优先使用PDB
+            if pdb_path and pdb_path.exists():
+                return {
+                    "success": True,
+                    "alphafold_available": False,
+                    "pdb_ids": pdb_ids,
+                    "structure_path": str(pdb_path),
+                    "structure_source": "pdb"
+                }
+            
+            # 如果PDB不可用，尝试AlphaFold结构
             af_available = False
             af_path = None
             try:
-                logger.info(f"尝试获取AlphaFold结构...")
+                logger.info(f"PDB不可用，尝试获取AlphaFold结构...")
                 af_path = api.pharma_engine.download_alphafold(
                     uniprot_acc, 
                     dest_dir=settings.TMP_DIR
@@ -115,43 +148,24 @@ class DrugDiscoveryAPI:
             except Exception as e:
                 logger.warning(f"AlphaFold获取失败: {str(e)}")
             
-            # 尝试获取PDB结构（如果AlphaFold失败）
-            pdb_ids = []
-            if not af_available:
-                try:
-                    logger.info(f"尝试获取PDB结构...")
-                    pdb_ids = api.pharma_engine.get_pdb_ids_for_uniprot(uniprot_acc)
-                    logger.info(f"找到{len(pdb_ids)}个PDB结构")
-                except Exception as e:
-                    logger.warning(f"PDB查询失败: {str(e)}")
-                    pdb_ids = []
-            
-            # 如果都没有找到，使用备用策略
-            if not af_available and not pdb_ids:
-                logger.warning(f"未找到{uniprot_acc}的结构，尝试通过基因符号查找...")
-                # 可以在这里添加通过基因符号查找的逻辑
-                return {
-                    "success": False,
-                    "error": f"未找到UniProt {uniprot_acc}对应的蛋白质结构（AlphaFold和PDB均不可用）",
-                    "alphafold_available": False,
-                    "pdb_ids": []
-                }
-            
-            # 如果有AlphaFold，优先使用它
+            # 如果AlphaFold可用，使用AlphaFold
             if af_available:
                 return {
                     "success": True,
                     "alphafold_available": True,
-                    "pdb_ids": [],
-                    "structure_path": str(af_path)
+                    "pdb_ids": pdb_ids,
+                    "structure_path": str(af_path),
+                    "structure_source": "alphafold"
                 }
             
-            # 否则返回PDB IDs
+            # 如果都没有找到，返回错误
+            logger.warning(f"未找到{uniprot_acc}的结构，PDB和AlphaFold均不可用")
             return {
-                "success": True,
+                "success": False,
+                "error": f"未找到UniProt {uniprot_acc}对应的蛋白质结构（PDB和AlphaFold均不可用）",
                 "alphafold_available": False,
                 "pdb_ids": pdb_ids,
-                "structure_path": pdb_ids[0] if pdb_ids else None
+                "structure_source": None
             }
             
         except ValidationError as e:
@@ -160,7 +174,8 @@ class DrugDiscoveryAPI:
                 "success": False,
                 "error": str(e),
                 "alphafold_available": False,
-                "pdb_ids": []
+                "pdb_ids": [],
+                "structure_source": None
             }
         except Exception as e:
             logger.error(f"获取结构来源失败: {str(e)}")
@@ -168,7 +183,8 @@ class DrugDiscoveryAPI:
                 "success": False,
                 "error": str(e),
                 "alphafold_available": False,
-                "pdb_ids": []
+                "pdb_ids": [],
+                "structure_source": None
             }
 
     @staticmethod

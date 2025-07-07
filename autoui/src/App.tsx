@@ -42,6 +42,8 @@ export default function App() {
   // 新增配体状态
   const [currentLigandSmiles, setCurrentLigandSmiles] = useState<string[] | null>(null)
   const [currentOptimizedSmiles, setCurrentOptimizedSmiles] = useState<string | null>(null)
+  // 新增AlphaFold指示灯状态
+  const [isUsingAlphaFold, setIsUsingAlphaFold] = useState<boolean>(false)
 
   const addLog = (
     logStep: number,
@@ -98,6 +100,8 @@ export default function App() {
     // 重置配体状态
     setCurrentLigandSmiles(null)
     setCurrentOptimizedSmiles(null)
+    // 重置AlphaFold指示灯状态
+    setIsUsingAlphaFold(false)
 
     try {
       // STEP 1: 靶点识别
@@ -243,9 +247,25 @@ export default function App() {
       const sRes = await api.getStructureSources(acc)
       addLog(3, '日志', JSON.stringify(sRes))
       if (!sRes.success) throw new Error(sRes.error)
-      const modelPath = (sRes as any).structure_path ?? (sRes as any).pdb_ids[0]
-      addLog(3, '状态', `结构文件路径：${modelPath}`)
-      setWorkflowState({ uniprot_acc: acc, structure_path: modelPath })
+      
+      const modelPath = (sRes as any).structure_path
+      const structureSource = (sRes as any).structure_source
+      
+      // 根据结构来源设置指示灯状态和日志信息
+      if (structureSource === 'alphafold') {
+        setIsUsingAlphaFold(true)
+        addLog(3, '状态', `使用 AlphaFold 预测结构：${modelPath}`)
+        addLog(3, '状态', '🧬 当前使用AI预测结构（AlphaFold）')
+      } else if (structureSource === 'pdb') {
+        setIsUsingAlphaFold(false)
+        addLog(3, '状态', `使用 PDB 实验结构：${modelPath}`)
+        addLog(3, '状态', '🔬 当前使用实验解析结构（PDB）')
+      } else {
+        setIsUsingAlphaFold(false)
+        addLog(3, '状态', `结构文件路径：${modelPath}`)
+      }
+      
+      setWorkflowState({ uniprot_acc: acc, structure_path: modelPath, structure_source: structureSource })
       
       // 立即显示结构
       setCurrentStructurePath(modelPath)
@@ -460,6 +480,57 @@ export default function App() {
           text-align: center;
         }
 
+        /* AlphaFold指示灯样式 */
+        .alphafold-indicator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 8px;
+          padding: 4px 8px;
+          background: rgba(34, 197, 94, 0.1);
+          border: 1px solid rgba(34, 197, 94, 0.2);
+          border-radius: 12px;
+          font-size: 11px;
+          color: #059669;
+          animation: alphafoldPulse 2s ease-in-out infinite;
+        }
+
+        .indicator-dot {
+          width: 6px;
+          height: 6px;
+          background: #10b981;
+          border-radius: 50%;
+          animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        .indicator-text {
+          font-weight: 500;
+          letter-spacing: 0.02em;
+        }
+
+        @keyframes alphafoldPulse {
+          0%, 100% {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+          }
+          50% {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+          }
+        }
+
+        @keyframes dotPulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.2);
+          }
+        }
+
         .logo-placeholder {
           width: 40px; height: 40px;
           background: #ccc; border-radius: 8px;
@@ -605,6 +676,13 @@ export default function App() {
             <h1>Protein Dance</h1>
             <h3>基于DeepSeek的全自动制药智能体</h3>
             <div className="designer-credit">Designed by Zhenxiong W. & Boran C. Guided by Dr Lingfang T. in Biochemphysics</div>
+            {/* AlphaFold指示灯 */}
+            {isUsingAlphaFold && (
+              <div className="alphafold-indicator">
+                <span className="indicator-dot"></span>
+                <span className="indicator-text">AlphaFold AI预测结构</span>
+              </div>
+            )}
           </div>
 
           {step === 0 ? (
