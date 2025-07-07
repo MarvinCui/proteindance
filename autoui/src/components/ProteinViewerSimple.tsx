@@ -72,11 +72,15 @@ const InfoPanel = styled.div`
 interface Props {
   structurePath?: string
   pocketCenter?: [number, number, number] | null
+  ligandSmiles?: string[] | null
+  optimizedSmiles?: string | null
 }
 
 const ProteinViewerSimple: React.FC<Props> = ({ 
   structurePath, 
-  pocketCenter 
+  pocketCenter,
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -158,6 +162,12 @@ const ProteinViewerSimple: React.FC<Props> = ({
           <p><strong>蛋白链：</strong> {structureInfo.chains.join(', ')}</p>
           {pocketCenter && (
             <p><strong>结合口袋中心：</strong> ({pocketCenter.map(n => n.toFixed(2)).join(', ')})</p>
+          )}
+          {ligandSmiles && (
+            <p><strong>配体分子：</strong> {ligandSmiles.length} 个 SMILES 结构</p>
+          )}
+          {optimizedSmiles && (
+            <p><strong>优化化合物：</strong> {optimizedSmiles.substring(0, 30)}...</p>
           )}
         </InfoPanel>
       )}

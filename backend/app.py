@@ -226,6 +226,54 @@ async def molecule_image(req: MoleculeImageRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/smiles-to-3d")
+async def smiles_to_3d(request: dict):
+    """将SMILES转换为3D分子结构"""
+    try:
+        smiles = request.get('smiles')
+        if not smiles:
+            raise HTTPException(status_code=400, detail="缺少SMILES参数")
+        
+        from rdkit import Chem
+        from rdkit.Chem import AllChem
+        
+        # 生成分子对象
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return {"success": False, "error": "SMILES格式错误"}
+        
+        # 添加氢原子
+        mol = Chem.AddHs(mol)
+        
+        # 生成3D坐标
+        result = AllChem.EmbedMolecule(mol, randomSeed=42)
+        if result != 0:
+            # 如果失败，尝试使用强制方法
+            AllChem.EmbedMolecule(mol, useRandomCoords=True, randomSeed=42)
+        
+        # 优化分子几何结构
+        try:
+            AllChem.UFFOptimizeMolecule(mol, maxIters=200)
+        except:
+            # 如果优化失败，继续使用未优化的结构
+            pass
+        
+        # 转换为SDF格式
+        sdf_data = Chem.MolToMolBlock(mol)
+        
+        return {
+            "success": True,
+            "mol_data": sdf_data,
+            "smiles": smiles
+        }
+        
+    except Exception as e:
+        logger.error(f"SMILES转3D失败: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 
 # @app.post("/api/docking-image")
 # async def docking_image(req: DockingImageRequest):

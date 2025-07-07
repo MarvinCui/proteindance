@@ -1,0 +1,212 @@
+    graph TB
+        subgraph "前端 (React + TypeScript)"
+            A[App.tsx - 主应用] --> B[WorkflowStepper -
+    步骤显示]
+            A --> C[StatusPanel - 状态面板]
+            A --> D[DecisionPanel - 决策面板]
+            A --> E[LogPanel - 日志面板]
+            A --> F[SidePanel - 侧边栏]
+            A --> G[ResultPanel - 结果面板]
+
+            F --> H[HistoryPanel - 历史记录]
+            F --> I[LiveProteinViewer - 实时结构显示]
+            I --> J[ProteinViewerCombined - 组合查看器]
+            J --> K[ProteinViewer3D - 3D查看器]
+            J --> L[ProteinViewerSimple - 简单查看器]
+            I --> M[FullscreenProteinViewer - 全屏查看器]
+
+            A --> N[services/api.ts - API客户端]
+        end
+
+        subgraph "后端 (FastAPI + Python)"
+            O[app.py - FastAPI应用] --> P[DrugDiscoveryAPI -
+    主API类]
+            P --> Q[AIEngine - AI引擎]
+            P --> R[PharmaEngine - 药物化学引擎]
+            P --> S[VisualizationEngine - 可视化引擎]
+            P --> T[WorkflowEngine - 工作流引擎]
+        end
+
+        subgraph "外部服务"
+            U[DeepSeek API - AI决策]
+            V[UniProt - 蛋白质数据]
+            W[RCSB PDB - 结构数据]
+            X[AlphaFold - 预测结构]
+            Y[ChEMBL - 化合物数据]
+            Z[P2Rank - 口袋预测]
+        end
+
+        N -.->|HTTP请求| O
+        Q -.->|AI请求| U
+        R -.->|数据查询| V
+        R -.->|结构下载| W
+        R -.->|结构下载| X
+        R -.->|化合物查询| Y
+        R -.->|口袋预测| Z
+
+    核心类关系图
+
+    classDiagram
+        class DrugDiscoveryAPI {
+            +_instance: DrugDiscoveryAPI
+            +ai_engine: AIEngine
+            +pharma_engine: PharmaEngine
+            +visualization_engine: VisualizationEngine
+            +workflow_engine: WorkflowEngine
+            +get_disease_targets(disease, innovation_level)
+            +ai_decision(options, context, question)
+            +get_uniprot_entries(gene_symbol)
+            +get_structure_sources(uniprot_acc)
+            +predict_pockets(structure_path)
+            +get_ligands(uniprot_acc, disease)
+            +select_compound(smiles_list, disease, protein)
+            +generate_molecule_image(smiles)
+        }
+
+        class AIEngine {
+            +deepseek_client: OpenAI
+            +analyze_disease_targets(disease,
+    innovation_level)
+            +make_decision(options, context, question)
+            +explain_target(gene_symbol, disease)
+            +select_optimal_compound(smiles_list, disease,
+    protein)
+            +generate_ligands(uniprot_acc, disease)
+        }
+
+        class PharmaEngine {
+            +uniprot_base: str
+            +rcsb_api: str
+            +alphafold_api: str
+            +search_uniprot(gene_symbol)
+            +get_pdb_ids_for_uniprot(accession)
+            +download_alphafold(uniprot_acc)
+            +download_pdb(pdb_id)
+            +run_p2rank(pdb_path)
+            +fetch_chembl_smiles(uniprot_acc)
+        }
+
+        class VisualizationEngine {
+            +generate_molecule_image(smiles)
+            +create_structure_visualization(pdb_path)
+        }
+
+        class WorkflowEngine {
+            +coordinate_workflow()
+            +manage_state()
+            +handle_errors()
+        }
+
+        DrugDiscoveryAPI --> AIEngine
+        DrugDiscoveryAPI --> PharmaEngine
+        DrugDiscoveryAPI --> VisualizationEngine
+        DrugDiscoveryAPI --> WorkflowEngine
+
+    完整工作流程
+
+    sequenceDiagram
+        participant U as 用户
+        participant F as 前端(App.tsx)
+        participant A as API客户端
+        participant B as 后端(FastAPI)
+        participant AI as AIEngine
+        participant P as PharmaEngine
+        participant DS as DeepSeek
+        participant UP as UniProt
+        participant AF as AlphaFold
+        participant P2 as P2Rank
+        participant CB as ChEMBL
+
+        U->>F: 输入疾病名称 + 创新度
+        F->>A: 调用 handleStart()
+
+        Note over F,B: 步骤1: 靶点识别
+        A->>B: POST /api/disease-targets
+        B->>AI: analyze_disease_targets(disease,
+    innovation_level)
+        AI->>DS: 请求疾病相关靶点分析
+        DS-->>AI: 返回靶点列表(含创新度评分)
+        AI-->>B: 返回靶点数据
+        B-->>A: 返回 {success: true, targets_with_scores}
+        A-->>F: 更新状态，显示靶点列表
+
+        Note over F,B: 步骤2: AI决策选靶点
+        A->>B: POST /api/ai-decision
+        B->>AI: make_decision(target_options, context)
+        AI->>DS: 分析最佳靶点选择
+        DS-->>AI: 返回选择结果 + 理由
+        AI-->>B: 返回决策数据
+        B-->>A: 返回 {success: true, selected_option,
+    explanation}
+        A-->>F: 更新决策面板
+
+        Note over F,B: 步骤3: UniProt检索
+        A->>B: POST /api/uniprot-entries
+        B->>P: search_uniprot(gene_symbol)
+        P->>UP: 查询蛋白质条目
+        UP-->>P: 返回UniProt条目
+        P-->>B: 返回条目列表
+        B-->>A: 返回 {success: true, entries}
+
+        Note over F,B: 步骤4: 结构获取
+        A->>B: POST /api/structure-sources
+        B->>P: download_alphafold(uniprot_acc)
+        P->>AF: 下载AlphaFold结构
+        AF-->>P: 返回PDB文件
+        P-->>B: 返回结构路径
+        B-->>A: 返回 {success: true, structure_path}
+        A-->>F: 更新状态 + 触发实时结构显示
+
+        Note over F,B: 实时结构显示
+        F->>A: 获取结构文件内容
+        A->>B: GET /api/structure/{path}
+        B-->>A: 返回PDB文件内容
+        A-->>F: LiveProteinViewer显示3D结构
+
+        Note over F,B: 步骤5: 口袋预测
+        A->>B: POST /api/predict-pockets
+        B->>P: run_p2rank(structure_path)
+        P->>P2: 执行P2Rank预测
+        P2-->>P: 返回口袋坐标 + 评分
+        P-->>B: 返回口袋列表
+        B-->>A: 返回 {success: true, pockets}
+
+        Note over F,B: AI决策选口袋
+        A->>B: POST /api/ai-decision
+        B->>AI: make_decision(pocket_options, context)
+        AI->>DS: 分析最佳口袋
+        DS-->>AI: 返回选择 + 理由
+        AI-->>B: 返回决策
+        B-->>A: 返回选中口袋
+        A-->>F: 更新口袋中心坐标，结构显示高亮口袋
+
+        Note over F,B: 步骤6: 配体获取
+        A->>B: POST /api/get-ligands
+        B->>P: fetch_chembl_smiles(uniprot_acc)
+        P->>CB: 查询活性化合物
+        CB-->>P: 返回SMILES列表
+        alt 如果ChEMBL无数据
+            B->>AI: generate_ligands(uniprot_acc, disease)
+            AI->>DS: AI生成配体分子
+            DS-->>AI: 返回生成的SMILES
+            AI-->>B: 返回AI生成配体
+        end
+        P-->>B: 返回配体列表
+        B-->>A: 返回 {success: true, smiles_list}
+
+        Note over F,B: 步骤7: 化合物优化
+        A->>B: POST /api/select-compound
+        B->>AI: select_optimal_compound(smiles_list, disease,
+    protein)
+        AI->>DS: 分析并优化化合物
+        DS-->>AI: 返回优化结果 + 解释
+        AI-->>B: 返回优化数据
+        B-->>A: 返回 {success: true, optimized_smiles,
+    explanation}
+
+        Note over F,B: 步骤8: 分子图像生成
+        A->>B: POST /api/molecule-image
+        B->>P: 使用RDKit生成分子图像
+        P-->>B: 返回Base64图像
+        B-->>A: 返回 {success: true, image_data}
+        A-->>F: 显示最终结果面板

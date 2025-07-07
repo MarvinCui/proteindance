@@ -39,6 +39,9 @@ export default function App() {
   const [currentStructurePath, setCurrentStructurePath] = useState<string | null>(null)
   const [currentPocketCenter, setCurrentPocketCenter] = useState<[number, number, number] | null>(null)
   const [currentProteinName, setCurrentProteinName] = useState<string>('蛋白质结构')
+  // 新增配体状态
+  const [currentLigandSmiles, setCurrentLigandSmiles] = useState<string[] | null>(null)
+  const [currentOptimizedSmiles, setCurrentOptimizedSmiles] = useState<string | null>(null)
 
   const addLog = (
     logStep: number,
@@ -92,6 +95,9 @@ export default function App() {
     setCurrentStructurePath(null)
     setCurrentPocketCenter(null)
     setCurrentProteinName('蛋白质结构')
+    // 重置配体状态
+    setCurrentLigandSmiles(null)
+    setCurrentOptimizedSmiles(null)
 
     try {
       // STEP 1: 靶点识别
@@ -324,6 +330,9 @@ export default function App() {
       }
       
       addLog(5, '状态', `共获取 ${allSmiles.length} 条 SMILES${hasAiGenerated ? ' (包含AI生成)' : ''}`)
+      
+      // 更新配体状态，触发实时显示
+      setCurrentLigandSmiles(allSmiles)
 
       // STEP 7: 化合物优化
       setStep(6)
@@ -337,6 +346,9 @@ export default function App() {
       addLog(6, '日志', JSON.stringify(cd))
       if (!cd.success) throw new Error(cd.error)
       setDecisionCompound(cd)
+      
+      // 更新优化化合物状态，触发实时显示
+      setCurrentOptimizedSmiles(cd.optimized_smiles)
 
       // 改进解释显示 - 分别显示选择理由和优化解释
       if (cd.explanation) {
@@ -648,6 +660,8 @@ export default function App() {
             pocketCenter={currentPocketCenter}
             currentStep={step}
             proteinName={currentProteinName}
+            ligandSmiles={currentLigandSmiles}
+            optimizedSmiles={currentOptimizedSmiles}
           />
         </div>
       </div>

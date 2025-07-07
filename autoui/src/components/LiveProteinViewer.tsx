@@ -96,13 +96,17 @@ interface Props {
   pocketCenter?: [number, number, number] | null
   currentStep?: number
   proteinName?: string
+  ligandSmiles?: string[] | null
+  optimizedSmiles?: string | null
 }
 
 const LiveProteinViewer: React.FC<Props> = ({ 
   structurePath, 
   pocketCenter,
   currentStep = 0,
-  proteinName = '蛋白质结构'
+  proteinName = '蛋白质结构',
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const renderContent = () => {
@@ -132,6 +136,8 @@ const LiveProteinViewer: React.FC<Props> = ({
         <ProteinViewerCombined 
           structurePath={structurePath}
           pocketCenter={pocketCenter}
+          ligandSmiles={ligandSmiles}
+          optimizedSmiles={optimizedSmiles}
         />
       </ContentContainer>
     )
@@ -173,6 +179,8 @@ const LiveProteinViewer: React.FC<Props> = ({
         structurePath={structurePath}
         pocketCenter={pocketCenter}
         proteinName={proteinName}
+        ligandSmiles={ligandSmiles}
+        optimizedSmiles={optimizedSmiles}
       />
     </>
   )

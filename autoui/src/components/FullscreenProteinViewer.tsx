@@ -113,6 +113,8 @@ interface Props {
   structurePath?: string | null
   pocketCenter?: [number, number, number] | null
   proteinName?: string
+  ligandSmiles?: string[] | null
+  optimizedSmiles?: string | null
 }
 
 const FullscreenProteinViewer: React.FC<Props> = ({
@@ -120,7 +122,9 @@ const FullscreenProteinViewer: React.FC<Props> = ({
   onClose,
   structurePath,
   pocketCenter,
-  proteinName = '蛋白质结构'
+  proteinName = '蛋白质结构',
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -181,6 +185,8 @@ const FullscreenProteinViewer: React.FC<Props> = ({
                 <ProteinViewerCombined 
                   structurePath={structurePath}
                   pocketCenter={pocketCenter}
+                  ligandSmiles={ligandSmiles}
+                  optimizedSmiles={optimizedSmiles}
                 />
               </FullscreenViewerContainer>
             </>

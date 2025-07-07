@@ -87,6 +87,8 @@ const ErrorMessage = styled.div`
 interface Props {
   structurePath?: string
   pocketCenter?: [number, number, number] | null
+  ligandSmiles?: string[] | null  // 配体SMILES列表
+  optimizedSmiles?: string | null  // 优化后的化合物
 }
 
 declare global {
@@ -97,13 +99,17 @@ declare global {
 
 const ProteinViewer3D: React.FC<Props> = ({ 
   structurePath, 
-  pocketCenter 
+  pocketCenter,
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewer, setViewer] = useState<any>(null)
   const [viewStyle, setViewStyle] = useState('cartoon')
+  const [showLigands, setShowLigands] = useState(true)
+  const [ligandModels, setLigandModels] = useState<any[]>([])
 
   useEffect(() => {
     if (!structurePath) return
@@ -200,6 +206,12 @@ const ProteinViewer3D: React.FC<Props> = ({
           })
         }
         
+        // 添加配体分子
+        await addLigandMolecules(viewerInstance)
+        
+        // 添加优化后的化合物
+        await addOptimizedCompound(viewerInstance)
+        
         // 调整视角和渲染
         viewerInstance.zoomTo()
         viewerInstance.render()
@@ -215,7 +227,132 @@ const ProteinViewer3D: React.FC<Props> = ({
     }
 
     initViewer()
-  }, [structurePath, pocketCenter])
+  }, [structurePath, pocketCenter, ligandSmiles, optimizedSmiles])
+  
+  // SMILES转3D结构的函数
+  const smilesTo3D = async (smiles: string): Promise<string | null> => {
+    try {
+      const API_BASE = 'http://192.168.1.100:5001'
+      const response = await fetch(`${API_BASE}/api/smiles-to-3d`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ smiles })
+      })
+      
+      if (!response.ok) {
+        console.warn(`SMILES转换失败: ${smiles}`)
+        return null
+      }
+      
+      const data = await response.json()
+      return data.success ? data.mol_data : null
+    } catch (err) {
+      console.warn(`SMILES转换错误: ${err}`)
+      return null
+    }
+  }
+  
+  // 添加配体分子到口袋中
+  const addLigandMolecules = async (viewerInstance: any) => {
+    if (!ligandSmiles || !pocketCenter || !showLigands) return
+    
+    const models: any[] = []
+    
+    // 只显示前3个配体，避免过于拥挤
+    const smilesSubset = ligandSmiles.slice(0, 3)
+    
+    for (let i = 0; i < smilesSubset.length; i++) {
+      const smiles = smilesSubset[i]
+      const molData = await smilesTo3D(smiles)
+      
+      if (molData) {
+        try {
+          const model = viewerInstance.addModel(molData, 'sdf')
+          
+          // 随机位置在口袋附近
+          const offsetX = (Math.random() - 0.5) * 6  // 随机偏移 -3 到 3
+          const offsetY = (Math.random() - 0.5) * 6
+          const offsetZ = (Math.random() - 0.5) * 6
+          
+          model.translate({
+            x: pocketCenter[0] + offsetX,
+            y: pocketCenter[1] + offsetY,
+            z: pocketCenter[2] + offsetZ
+          })
+          
+          // 配体样式 - 用不同颜色区分
+          const colors = ['cyan', 'yellow', 'magenta']
+          model.setStyle({}, {
+            stick: {
+              colorscheme: colors[i] || 'cyan',
+              radius: 0.2
+            },
+            sphere: {
+              colorscheme: colors[i] || 'cyan',
+              radius: 0.3,
+              alpha: 0.8
+            }
+          })
+          
+          models.push(model)
+        } catch (err) {
+          console.warn(`添加配体${i+1}失败:`, err)
+        }
+      }
+    }
+    
+    setLigandModels(models)
+  }
+  
+  // 添加优化后的化合物
+  const addOptimizedCompound = async (viewerInstance: any) => {
+    if (!optimizedSmiles || !pocketCenter) return
+    
+    const molData = await smilesTo3D(optimizedSmiles)
+    
+    if (molData) {
+      try {
+        const model = viewerInstance.addModel(molData, 'sdf')
+        
+        // 优化化合物放在口袋中心
+        model.translate({
+          x: pocketCenter[0],
+          y: pocketCenter[1],
+          z: pocketCenter[2]
+        })
+        
+        // 特殊样式 - 绿色高亮
+        model.setStyle({}, {
+          stick: {
+            colorscheme: 'greenCarbon',
+            radius: 0.3
+          },
+          sphere: {
+            colorscheme: 'greenCarbon',
+            radius: 0.4,
+            alpha: 0.9
+          }
+        })
+        
+        // 添加标签
+        viewerInstance.addLabel('优化化合物', {
+          position: {
+            x: pocketCenter[0],
+            y: pocketCenter[1] + 3,
+            z: pocketCenter[2]
+          },
+          backgroundColor: 'green',
+          fontColor: 'white',
+          fontSize: 12
+        })
+        
+      } catch (err) {
+        console.warn('添加优化化合物失败:', err)
+      }
+    }
+  }
 
   const changeStyle = (style: string) => {
     if (!viewer) return
@@ -242,9 +379,45 @@ const ProteinViewer3D: React.FC<Props> = ({
           break
       }
       
+      // 重新添加口袋标记（样式切换后保持可见）
+      if (pocketCenter && Array.isArray(pocketCenter) && pocketCenter.length === 3) {
+        viewer.addSphere({
+          center: { x: pocketCenter[0], y: pocketCenter[1], z: pocketCenter[2] },
+          radius: 3.0,
+          color: 'red',
+          alpha: 0.6
+        })
+      }
+      
+      // 重新添加配体和优化化合物
+      if (showLigands) {
+        addLigandMolecules(viewer)
+        addOptimizedCompound(viewer)
+      }
+      
       viewer.render()
     } catch (err) {
       console.error('Error changing style:', err)
+    }
+  }
+  
+  const toggleLigands = () => {
+    setShowLigands(!showLigands)
+    if (viewer) {
+      if (!showLigands) {
+        // 显示配体
+        addLigandMolecules(viewer)
+        addOptimizedCompound(viewer)
+      } else {
+        // 隐藏配体 - 重新初始化查看器
+        viewer.clear()
+        // 重新加载蛋白质结构
+        if (structurePath) {
+          // 这里可以重新调用加载逻辑
+          window.location.reload() // 简单的做法，重新加载页面
+        }
+      }
+      viewer.render()
     }
   }
 
@@ -289,7 +462,43 @@ const ProteinViewer3D: React.FC<Props> = ({
             >
               线条
             </ControlButton>
+            
+            {/* 配体显示控制 */}
+            <ControlButton 
+              className={showLigands ? 'active' : ''}
+              onClick={toggleLigands}
+              style={{ 
+                marginLeft: '10px',
+                backgroundColor: showLigands ? '#10b981' : '#6b7280',
+                border: 'none'
+              }}
+            >
+              {showLigands ? '🧪 隐藏配体' : '🧪 显示配体'}
+            </ControlButton>
           </ControlPanel>
+          
+          {/* 配体信息显示 */}
+          {(ligandSmiles || optimizedSmiles) && (
+            <div style={{
+              fontSize: '12px',
+              color: '#6b7280',
+              marginBottom: '8px',
+              padding: '8px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '6px',
+              border: '1px solid #e5e7eb'
+            }}>
+              {ligandSmiles && (
+                <div>📊 配体数量: {ligandSmiles.length} (显示前3个)</div>
+              )}
+              {optimizedSmiles && (
+                <div>✨ 优化化合物: 已加载</div>
+              )}
+              <div style={{ fontSize: '11px', marginTop: '4px', color: '#9ca3af' }}>
+                配体以不同颜色显示：蓝绿、黄、紫红 | 优化化合物：绿色
+              </div>
+            </div>
+          )}
 
           <ViewerFrame className="viewer-frame">
             <div 

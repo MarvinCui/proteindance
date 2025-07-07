@@ -41,6 +41,8 @@ interface Props {
   pocketCenter?: [number, number, number] | null
   currentStep?: number
   proteinName?: string
+  ligandSmiles?: string[] | null
+  optimizedSmiles?: string | null
 }
 
 const SidePanel: React.FC<Props> = ({ 
@@ -48,7 +50,9 @@ const SidePanel: React.FC<Props> = ({
   structurePath, 
   pocketCenter, 
   currentStep,
-  proteinName 
+  proteinName,
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   return (
     <Container>
@@ -62,6 +66,8 @@ const SidePanel: React.FC<Props> = ({
           pocketCenter={pocketCenter}
           currentStep={currentStep}
           proteinName={proteinName}
+          ligandSmiles={ligandSmiles}
+          optimizedSmiles={optimizedSmiles}
         />
       </StructureSection>
     </Container>

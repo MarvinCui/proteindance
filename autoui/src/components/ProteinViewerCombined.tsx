@@ -5,11 +5,15 @@ import ProteinViewerSimple from './ProteinViewerSimple'
 interface Props {
   structurePath?: string
   pocketCenter?: [number, number, number] | null
+  ligandSmiles?: string[] | null
+  optimizedSmiles?: string | null
 }
 
 const ProteinViewerCombined: React.FC<Props> = ({ 
   structurePath, 
-  pocketCenter 
+  pocketCenter,
+  ligandSmiles = null,
+  optimizedSmiles = null
 }) => {
   const [use3D, setUse3D] = useState(true)
 
@@ -25,6 +29,8 @@ const ProteinViewerCombined: React.FC<Props> = ({
           <ProteinViewer3D 
             structurePath={structurePath}
             pocketCenter={pocketCenter}
+            ligandSmiles={ligandSmiles}
+            optimizedSmiles={optimizedSmiles}
           />
         </div>
         <div style={{ 
@@ -59,6 +65,8 @@ const ProteinViewerCombined: React.FC<Props> = ({
         <ProteinViewerSimple 
           structurePath={structurePath}
           pocketCenter={pocketCenter}
+          ligandSmiles={ligandSmiles}
+          optimizedSmiles={optimizedSmiles}
         />
       </div>
       <div style={{ 
