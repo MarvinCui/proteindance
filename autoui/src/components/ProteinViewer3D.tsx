@@ -164,7 +164,7 @@ const ProteinViewer3D: React.FC<Props> = ({
         }
 
         // 获取结构数据
-        const API_BASE = 'http://192.168.1.100:5001'
+        const API_BASE = 'http://192.168.0.58:5001'
         // 确保路径正确编码，避免双斜杠问题
         const encodedPath = encodeURIComponent(structurePath)
         const response = await fetch(`${API_BASE}/api/structure/${encodedPath}`)
@@ -233,7 +233,7 @@ const ProteinViewer3D: React.FC<Props> = ({
   // SMILES转3D结构的函数
   const smilesTo3D = async (smiles: string): Promise<string | null> => {
     try {
-      const API_BASE = 'http://192.168.1.100:5001'
+      const API_BASE = 'http://192.168.0.58:5001'
       const response = await fetch(`${API_BASE}/api/smiles-to-3d`, {
         method: 'POST',
         headers: {

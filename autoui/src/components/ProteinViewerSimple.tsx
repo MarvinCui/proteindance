@@ -95,7 +95,7 @@ const ProteinViewerSimple: React.FC<Props> = ({
         setError(null)
 
         // 获取蛋白质结构数据
-        const API_BASE = 'http://192.168.1.100:5001'
+        const API_BASE = 'http://192.168.0.58:5001'
         // 确保路径正确编码，避免双斜杠问题
         const encodedPath = encodeURIComponent(structurePath)
         const response = await fetch(`${API_BASE}/api/structure/${encodedPath}`)
