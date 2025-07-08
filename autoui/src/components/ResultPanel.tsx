@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from '@emotion/styled'
-import ProteinViewerCombined from './ProteinViewerCombined'
 
 const Panel = styled.div`
   background: white;
@@ -21,18 +20,6 @@ const SectionTitle = styled.h3`
   margin: 0 0 16px;
   padding-bottom: 8px;
   border-bottom: 2px solid rgba(79,70,229,0.2);
-`
-
-const ImageContainer = styled.div`
-  display: flex;
-  gap: 20px;
-  margin: 16px 0;
-  
-  img {
-    max-width: 45%;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
 `
 
 const FileLink = styled.a`
@@ -141,8 +128,7 @@ const ResultPanel: React.FC<Props> = ({
     uniprotAcc,
     targetExplanation: targetExplanation ? `${targetExplanation.substring(0, 50)}...` : null,
     explanation: explanation ? `${explanation.substring(0, 50)}...` : null,
-    selectionReason: selectionReason ? `${selectionReason.substring(0, 50)}...` : null,
-    optimizationExplanation: optimizationExplanation ? `${optimizationExplanation.substring(0, 50)}...` : null
+    moleculeImage: moleculeImage ? 'Available' : 'Not available'
   });
   return (
     <Panel>
@@ -168,29 +154,37 @@ const ResultPanel: React.FC<Props> = ({
         </InfoGrid>
       </Section>
 
-      {(moleculeImage || dockingImage || structurePath) && (
+      {(moleculeImage || dockingImage) && (
         <Section>
-          <SectionTitle>结构可视化</SectionTitle>
+          <SectionTitle>分子结构</SectionTitle>
           
-          {/* 蛋白质结构可视化 */}
-          {structurePath && (
-            <ProteinViewerCombined 
-              structurePath={structurePath}
-              pocketCenter={pocketCenter}
-            />
-          )}
-          
-          {/* 2D分子结构图像 */}
-          {(moleculeImage || dockingImage) && (
-            <ImageContainer>
-              {moleculeImage && (
-                <img src={`data:image/png;base64,${moleculeImage}`} alt="优化后的分子结构" />
-              )}
-              {dockingImage && (
-                <img src={`data:image/png;base64,${dockingImage}`} alt="蛋白质-配体对接" />
-              )}
-            </ImageContainer>
-          )}
+          {/* 2D分子结构图像 - 居中显示 */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '20px 0' }}>
+            {moleculeImage && (
+              <img 
+                src={`data:image/png;base64,${moleculeImage}`} 
+                alt="优化后的分子结构" 
+                style={{ 
+                  maxWidth: '400px', 
+                  height: 'auto', 
+                  borderRadius: '8px', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)' 
+                }} 
+              />
+            )}
+            {dockingImage && (
+              <img 
+                src={`data:image/png;base64,${dockingImage}`} 
+                alt="蛋白质-配体对接" 
+                style={{ 
+                  maxWidth: '400px', 
+                  height: 'auto', 
+                  borderRadius: '8px', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)' 
+                }} 
+              />
+            )}
+          </div>
         </Section>
       )}
 
