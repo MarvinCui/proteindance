@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import WorkflowStepper from './components/WorkflowStepper'
 import StatusPanel from './components/StatusPanel'
 import DecisionPanel from './components/DecisionPanel'
 import LogPanel from './components/LogPanel'
 import SidePanel from './components/SidePanel'
 import InnovationSlider from './components/InnovationSlider'
-import * as api from './services/api'
+import { api } from './services/api'
 import ResultPanel from './components/ResultPanel'
 import { TargetWithScore } from './services/api'
+import { SessionHistory } from './components/SessionHistory'
+import { Session, SessionData } from './services/api.types'
 
 interface LogEntry {
   step: number
@@ -44,6 +46,101 @@ export default function App() {
   const [currentOptimizedSmiles, setCurrentOptimizedSmiles] = useState<string | null>(null)
   // 新增AlphaFold指示灯状态
   const [isUsingAlphaFold, setIsUsingAlphaFold] = useState<boolean>(false)
+  // Session Management State
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Function to save the current state
+  const saveCurrentSession = async () => {
+    const sessionData: SessionData = {
+      disease,
+      step,
+      logs,
+      decisionTarget,
+      decisionPocket,
+      decisionCompound,
+      moleculeImage,
+      workflowState,
+      innovationLevel,
+      allTargets,
+      triedTargets,
+      targetExplanation,
+      selectionReason,
+      optimizationExplanation,
+      currentStructurePath,
+      currentPocketCenter,
+      currentProteinName,
+      currentLigandSmiles,
+      currentOptimizedSmiles,
+      isUsingAlphaFold,
+    };
+    try {
+      const savedSession = await api.saveSession(sessionData, currentSessionId || undefined);
+      if (!currentSessionId) {
+        setCurrentSessionId(savedSession.id);
+      }
+      addLog(step, '日志', `Session state saved with ID: ${savedSession.id}`)
+    } catch (error) {
+      console.error("Failed to save session:", error);
+      addLog(step, '状态', '🚨 Error saving session state.')
+    }
+  };
+
+  // Effect to save state whenever a major step changes
+  useEffect(() => {
+    if (step > 0) { // Only save after the process has started
+      saveCurrentSession();
+    }
+  }, [step, decisionTarget, decisionPocket, decisionCompound]); // Add other dependencies as needed
+
+  const handleSessionSelect = (session: Session) => {
+    setCurrentSessionId(session.id);
+    const data = session.session_data;
+    setDisease(data.disease || '');
+    setStep(data.step || 0);
+    setLogs(data.logs || []);
+    setDecisionTarget(data.decisionTarget || null);
+    setDecisionPocket(data.decisionPocket || null);
+    setDecisionCompound(data.decisionCompound || null);
+    setMoleculeImage(data.moleculeImage || null);
+    setWorkflowState(data.workflowState || null);
+    setInnovationLevel(data.innovationLevel || 5);
+    setAllTargets(data.allTargets || []);
+    setTriedTargets(data.triedTargets || []);
+    setTargetExplanation(data.targetExplanation || null);
+    setSelectionReason(data.selectionReason || null);
+    setOptimizationExplanation(data.optimizationExplanation || null);
+    setCurrentStructurePath(data.currentStructurePath || null);
+    setCurrentPocketCenter(data.currentPocketCenter || null);
+    setCurrentProteinName(data.currentProteinName || '蛋白质结构');
+    setCurrentLigandSmiles(data.currentLigandSmiles || null);
+    setCurrentOptimizedSmiles(data.currentOptimizedSmiles || null);
+    setIsUsingAlphaFold(data.isUsingAlphaFold || false);
+  };
+
+  const handleNewSession = () => {
+    setCurrentSessionId(null);
+    setDisease('');
+    setStep(0);
+    setLogs([]);
+    setDecisionTarget(null);
+    setDecisionPocket(null);
+    setDecisionCompound(null);
+    setMoleculeImage(null);
+    setWorkflowState(null);
+    setInnovationLevel(5);
+    setAllTargets([]);
+    setTriedTargets([]);
+    setTargetExplanation(null);
+    setSelectionReason(null);
+    setOptimizationExplanation(null);
+    setCurrentStructurePath(null);
+    setCurrentPocketCenter(null);
+    setCurrentProteinName('蛋白质结构');
+    setCurrentLigandSmiles(null);
+    setCurrentOptimizedSmiles(null);
+    setIsUsingAlphaFold(false);
+  };
 
   const addLog = (
     logStep: number,
@@ -419,24 +516,89 @@ export default function App() {
         body {
           margin: 0; padding: 0;
           background: #f0f2f7;
+          overflow: hidden; /* Prevent body from scrolling */
         }
-        .wrapper {
-          display: flex; justify-content: center;
-          align-items: stretch; padding: 8px; gap: 12px;
-          min-height: 100vh;
-          max-width: 1400px;
-          margin: 0 auto;
+        .super-wrapper {
+          display: flex;
+          height: 100vh;
+          width: 100vw;
+          transition: padding-left 0.3s ease-in-out; /* Smooth transition for layout shift */
         }
+        .session-history-container {
+          position: fixed; /* Fixed position to overlay or slide in/out */
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 280px;
+          flex-shrink: 0;
+          background: #f8f9fc;
+          border-right: 1px solid #e5e7eb;
+          transition: transform 0.3s ease-in-out;
+          z-index: 200; /* Ensure it's above other content */
+          display: flex;
+          flex-direction: column;
+        }
+        .session-history-container.collapsed {
+          transform: translateX(-100%);
+        }
+        .collapse-btn {
+          position: fixed; /* Fixed position relative to viewport */
+          top: 50%;
+          left: 280px; /* Start at the edge of the expanded sidebar */
+          transform: translateY(-50%);
+          width: 24px;
+          height: 80px;
+          background: #4f46e5;
+          border: 1px solid #4338ca;
+          border-left: none;
+          border-radius: 0 8px 8px 0;
+          cursor: pointer;
+          z-index: 201; /* Above the sidebar */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          color: #fff;
+          box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+          transition: left 0.3s ease-in-out, background-color 0.2s;
+        }
+        .session-history-container.collapsed + .collapse-btn {
+          left: 0; /* Move to the edge of the screen when collapsed */
+        }
+        .collapse-btn:hover {
+          background: #4338ca;
+        }
+
+        .content-and-right-panel-wrapper {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            margin-left: 280px; /* Make space for the fixed sidebar */
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        .session-history-container.collapsed ~ .content-and-right-panel-wrapper {
+            margin-left: 0;
+        }
+
+        .main-content-wrapper {
+          flex-grow: 1;
+          overflow-y: auto; /* This is the main scrollable area */
+          padding: 12px;
+        }
+
         .app {
           position: relative;
-          flex: 1;
-          background: #fff; border-radius: 8px;
+          width: 100%;
+          max-width: 900px;
+          margin: 0 auto; /* Center the app panel */
+          background: #fff;
+          border-radius: 8px;
           box-shadow: 0 4px 16px rgba(0,0,0,0.1);
           padding: 16px; font-family: 'Segoe UI', sans-serif;
           border: 2px solid transparent;
-          overflow: hidden; z-index: 1;
-          height: fit-content;
-          align-self: flex-start;
+          z-index: 1;
+          align-self: flex-start; /* Important for scrolling */
         }
         .app.active {
           animation: borderBreathe 2.5s ease-in-out infinite;
@@ -578,30 +740,64 @@ export default function App() {
 
         /* 侧边栏样式 */
         .side-panel {
-          width: 320px;
+          width: 340px;
           flex-shrink: 0;
-          height: 100vh;
+          height: 100vh; /* Full viewport height */
           max-height: 100vh;
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          align-self: stretch;
+          padding: 8px;
+          background-color: #f0f2f7; /* Match body background */
+          transition: width 0.3s ease-in-out;
+        }
+
+        .session-history-container.collapsed ~ .content-and-right-panel-wrapper .side-panel {
+            width: 450px; /* Expand right sidebar when left is collapsed */
         }
 
         /* Responsive adjustments */
         @media (max-width: 1200px) { /* Large tablet */
-          .wrapper {
+          .super-wrapper {
             flex-direction: column;
-            gap: 12px;
+          }
+          .main-content-wrapper {
+            order: 1;
           }
           .side-panel {
             width: 100%;
+            height: 500px; /* Fixed height on smaller screens */
+            max-height: 500px;
             order: 2;
+          }
+          .session-history-container {
+            position: relative; /* Revert fixed positioning */
+            transform: none !important; /* Disable transform */
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            border-right: none;
+            border-top: 1px solid #e5e7eb;
+            order: 3;
+            z-index: 1;
+          }
+          .session-history-container.collapsed {
+             height: 0;
+             min-height: 0;
+             overflow: hidden;
+          }
+          .collapse-btn {
+            display: none; /* Hide collapse button on mobile layouts */
+          }
+          .content-and-right-panel-wrapper {
+            margin-left: 0; /* No margin on mobile */
+            flex-direction: column;
+            width: 100%;
           }
         }
 
         @media (max-width: 768px) { /* Tablet and smaller */
-          .wrapper {
+          .main-content-wrapper {
             padding: 8px;
             gap: 10px;
           }
@@ -631,7 +827,7 @@ export default function App() {
         }
 
         @media (max-width: 480px) { /* Mobile phones */
-          .wrapper {
+          .main-content-wrapper {
             padding: 10px;
             flex-direction: column;
             gap: 15px;
@@ -670,77 +866,91 @@ export default function App() {
         }
       `}</style>
 
-      <div className="wrapper">
-        <div className={`app${active ? ' active' : ''}`}>
-          <div className="title-row">
-            <h1>Protein Dance</h1>
-            <h3>基于DeepSeek的全自动制药智能体</h3>
-            <div className="designer-credit">Designed by Zhenxiong W. & Boran C. Guided by Dr Lingfang T. in Biochemphysics</div>
-            {/* AlphaFold指示灯 */}
-            {isUsingAlphaFold && (
-              <div className="alphafold-indicator">
-                <span className="indicator-dot"></span>
-                <span className="indicator-text">AlphaFold AI预测结构</span>
-              </div>
-            )}
-          </div>
-
-          {step === 0 ? (
-            <>
-              <div className="input">
-                <input
-                  value={disease}
-                  placeholder="输入疾病名称"
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisease(e.target.value)}
-                />
-                <button onClick={handleStart}>开始</button>
-              </div>
-              <InnovationSlider 
-                value={innovationLevel}
-                onChange={setInnovationLevel}
-              />
-            </>
-          ) : step === 8 ? (
-            <>
-              <WorkflowStepper
-                currentStep={step}
-              />
-              <ResultPanel
-                disease={disease}
-                geneSymbol={decisionTarget?.selected_option || ''}
-                uniprotAcc={workflowState?.uniprot_acc}
-                pocketCenter={decisionPocket?.pocket_center || null}
-                optimizedSmiles={decisionCompound?.optimized_smiles || null}
-                explanation={decisionCompound?.explanation || null}
-                selectionReason={selectionReason}
-                optimizationExplanation={optimizationExplanation}
-                moleculeImage={moleculeImage}
-                structurePath={workflowState?.structure_path}
-                targetExplanation={targetExplanation}
-              />
-            </>
-          ) : (
-            <>
-              <WorkflowStepper
-                currentStep={step}
-              />
-              <StatusPanel logs={logs.filter(l => l.category === '状态' && l.step === step)} />
-              <DecisionPanel logs={logs.filter(l => l.category === '决策')} />
-              <LogPanel logs={logs.filter(l => l.category === '日志' && l.step === step)} />
-            </>
-          )}
+      <div className="super-wrapper">
+        <div className={`session-history-container ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+            <SessionHistory 
+                onSessionSelect={handleSessionSelect} 
+                currentSessionId={currentSessionId}
+                onNewSession={handleNewSession}
+            />
         </div>
+        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="collapse-btn" title={isSidebarCollapsed ? "Show Sidebar" : "Collapse Sidebar"}>
+          {isSidebarCollapsed ? '▶' : '◀'}
+        </button>
+        <div className="content-and-right-panel-wrapper">
+            <div className="main-content-wrapper">
+              <div className={`app${active ? ' active' : ''}`}>
+                <div className="title-row">
+                  <h1>Protein Dance</h1>
+                  <h3>基于DeepSeek的全自动制药智能体</h3>
+                  <div className="designer-credit">Designed by Zhenxiong W. & Boran C. Guided by Dr Lingfang T. in Biochemphysics</div>
+                  {/* AlphaFold指示灯 */}
+                  {isUsingAlphaFold && (
+                    <div className="alphafold-indicator">
+                      <span className="indicator-dot"></span>
+                      <span className="indicator-text">AlphaFold AI预测结构</span>
+                    </div>
+                  )}
+                </div>
 
-        <div className="side-panel">
-          <SidePanel 
-            logs={logs} 
-            structurePath={currentStructurePath}
-            pocketCenter={currentPocketCenter}
-            currentStep={step}
-            proteinName={currentProteinName}
-            ligandSmiles={currentLigandSmiles}
-            optimizedSmiles={currentOptimizedSmiles}
-          />
+                {step === 0 ? (
+                  <>
+                    <div className="input">
+                      <input
+                        value={disease}
+                        placeholder="输入疾病名称"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisease(e.target.value)}
+                      />
+                      <button onClick={handleStart}>开始</button>
+                    </div>
+                    <InnovationSlider 
+                      value={innovationLevel}
+                      onChange={setInnovationLevel}
+                    />
+                  </>
+                ) : step === 8 ? (
+                  <>
+                    <WorkflowStepper
+                      currentStep={step}
+                    />
+                    <ResultPanel
+                      disease={disease}
+                      geneSymbol={decisionTarget?.selected_option || ''}
+                      uniprotAcc={workflowState?.uniprot_acc}
+                      pocketCenter={decisionPocket?.pocket_center || null}
+                      optimizedSmiles={decisionCompound?.optimized_smiles || null}
+                      explanation={decisionCompound?.explanation || null}
+                      selectionReason={selectionReason}
+                      optimizationExplanation={optimizationExplanation}
+                      moleculeImage={moleculeImage}
+                      structurePath={workflowState?.structure_path}
+                      targetExplanation={targetExplanation}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <WorkflowStepper
+                      currentStep={step}
+                    />
+                    <StatusPanel logs={logs.filter(l => l.category === '状态' && l.step === step)} />
+                    <DecisionPanel logs={logs.filter(l => l.category === '决策')} />
+                    <LogPanel logs={logs.filter(l => l.category === '日志' && l.step === step)} />
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="side-panel">
+              <SidePanel 
+                logs={logs} 
+                structurePath={currentStructurePath}
+                pocketCenter={currentPocketCenter}
+                currentStep={step}
+                proteinName={currentProteinName}
+                ligandSmiles={currentLigandSmiles}
+                optimizedSmiles={currentOptimizedSmiles}
+              />
+            </div>
         </div>
       </div>
     </>

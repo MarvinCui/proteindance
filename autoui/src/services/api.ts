@@ -1,4 +1,6 @@
 // src/services/api.ts
+import { Session, SessionData, SessionMetadata } from './api.types';
+
 export interface ApiResponse<T> {
     success: boolean;
     error?: string;
@@ -33,80 +35,8 @@ async function postJson<T>(path: string, body: any): Promise<ApiResponse<T>> {
   return res.json();
 }
 
-export async function getDiseaseTargets(disease: string, innovationLevel: number = 5) {
-  return postJson<{
-    targets: string[];
-    targets_with_scores: TargetWithScore[];
-  }>('/disease-targets', { disease, innovation_level: innovationLevel });
-}
-
-export async function getUniprotEntries(gene_symbol: string) {
-  return postJson<{ acc: string; name: string }[]>('/uniprot-entries', { gene_symbol });
-}
-
-export async function getVerifiedTarget(disease: string) {
-  return postJson<{ 
-    symbol: string;
-    uniprot_acc: string;
-    name: string;
-    innovation_score: number;
-    entries: { acc: string; name: string }[];
-  }>('/verified-target', { disease });
-}
-
-export async function getStructureSources(uniprot_acc: string) {
-  return postJson<{ 
-    alphafold_available: boolean; 
-    pdb_ids: string[];
-    structure_path?: string;
-    structure_source?: string;
-  }>('/structure-sources', { uniprot_acc });
-}
-
-export async function predictPockets(structure_path: string) {
-  return postJson<{ pockets: { center: [number, number, number]; score: number }[] }>('/predict-pockets', { structure_path });
-}
-
-export async function getLigands(uniprot_acc?: string, custom_smiles?: string[], disease?: string) {
-  return postJson<{ 
-    chembl_smiles?: string[]; 
-    custom_smiles?: string[];
-    ai_generated_smiles?: string[];
-    ai_generated_full?: AiGeneratedLigand[];
-  }>('/get-ligands', { uniprot_acc, custom_smiles, disease });
-}
-
-export async function aiDecision(params: { options: string[]; context?: string; question: string }) {
-  return postJson<{ selected_option: string; explanation: string }>('/ai-decision', params);
-}
-
-export async function selectCompound(params: {
-  smiles_list: string[];
-  disease: string;
-  protein: string;
-  pocket_center?: [number, number, number];
-}) {
-  return postJson<{ selected_smiles: string; optimized_smiles: string; explanation: string }>('/select-compound', params);
-}
-
-export async function generateMoleculeImage(smiles: string) {
-  return postJson<{ image_data: string }>('/molecule-image', { smiles });
-}
-
-//  export async function generateDockingImage(
-//    protein_path: string,
-//    ligand_smiles: string,
-//    pocket_center: [number, number, number]
-//  ) {
-//    return postJson<{ image_data: string }>('/docking-image', { protein_path, ligand_smiles, pocket_center });
-//  }
-
-export async function completeWorkflow(disease: string, selected_targets?: string[]) {
-  return postJson<any>('/complete-workflow', { disease, selected_targets });
-}
-
-export async function getDecisionExplanations() {
-  const res = await fetch(`${API_BASE}/decision-explanations`);
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`HTTP ${res.status}: ${text}`);
@@ -114,10 +44,111 @@ export async function getDecisionExplanations() {
   return res.json();
 }
 
-export async function getTargetExplanation(gene_symbol: string, disease: string) {
-  return postJson<{ explanation: string }>('/target-explanation', { gene_symbol, disease });
+async function deleteJson(path: string): Promise<void> {
+    const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+    if (!res.ok && res.status !== 204) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+    }
 }
 
-export async function generateProteinVisualization(structure_path: string, pocket_center?: [number, number, number]) {
-  return postJson<{ html: string }>('/protein-visualization', { structure_path, pocket_center });
-}
+export const api = {
+  getDiseaseTargets: (disease: string, innovationLevel: number = 5) => {
+    return postJson<{
+      targets: string[];
+      targets_with_scores: TargetWithScore[];
+    }>('/disease-targets', { disease, innovation_level: innovationLevel });
+  },
+
+  getUniprotEntries: (gene_symbol: string) => {
+    return postJson<{ acc: string; name: string }[]>('/uniprot-entries', { gene_symbol });
+  },
+
+  getVerifiedTarget: (disease: string) => {
+    return postJson<{ 
+      symbol: string;
+      uniprot_acc: string;
+      name: string;
+      innovation_score: number;
+      entries: { acc: string; name: string }[];
+    }>('/verified-target', { disease });
+  },
+
+  getStructureSources: (uniprot_acc: string) => {
+    return postJson<{ 
+      alphafold_available: boolean; 
+      pdb_ids: string[];
+      structure_path?: string;
+      structure_source?: string;
+    }>('/structure-sources', { uniprot_acc });
+  },
+
+  predictPockets: (structure_path: string) => {
+    return postJson<{ pockets: { center: [number, number, number]; score: number }[] }>('/predict-pockets', { structure_path });
+  },
+
+  getLigands: (uniprot_acc?: string, custom_smiles?: string[], disease?: string) => {
+    return postJson<{ 
+      chembl_smiles?: string[]; 
+      custom_smiles?: string[];
+      ai_generated_smiles?: string[];
+      ai_generated_full?: AiGeneratedLigand[];
+    }>('/get-ligands', { uniprot_acc, custom_smiles, disease });
+  },
+
+  aiDecision: (params: { options: string[]; context?: string; question: string }) => {
+    return postJson<{ selected_option: string; explanation: string }>('/ai-decision', params);
+  },
+
+  selectCompound: (params: {
+    smiles_list: string[];
+    disease: string;
+    protein: string;
+    pocket_center?: [number, number, number];
+  }) => {
+    return postJson<{ selected_smiles: string; optimized_smiles: string; explanation: string }>('/select-compound', params);
+  },
+
+  generateMoleculeImage: (smiles: string) => {
+    return postJson<{ image_data: string }>('/molecule-image', { smiles });
+  },
+
+  completeWorkflow: (disease: string, selected_targets?: string[]) => {
+    return postJson<any>('/complete-workflow', { disease, selected_targets });
+  },
+
+  getDecisionExplanations: async () => {
+    const res = await fetch(`${API_BASE}/decision-explanations`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+    return res.json();
+  },
+
+  getTargetExplanation: (gene_symbol: string, disease: string) => {
+    return postJson<{ explanation: string }>('/target-explanation', { gene_symbol, disease });
+  },
+
+  generateProteinVisualization: (structure_path: string, pocket_center?: [number, number, number]) => {
+    return postJson<{ html: string }>('/protein-visualization', { structure_path, pocket_center });
+  },
+
+  // Session Management
+  listSessions: () => {
+    return getJson<SessionMetadata[]>('/sessions');
+  },
+
+  getSession: (sessionId: string) => {
+    return getJson<Session>(`/sessions/${sessionId}`);
+  },
+
+  saveSession: (sessionData: SessionData, sessionId?: string) => {
+    const path = sessionId ? `/sessions?session_id=${sessionId}` : '/sessions';
+    return postJson<Session>(path, sessionData);
+  },
+
+  deleteSession: (sessionId: string) => {
+    return deleteJson(`/sessions/${sessionId}`);
+  },
+};

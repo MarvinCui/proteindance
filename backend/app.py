@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 # Import organized backend services
 from .services.drug_discovery_api import DrugDiscoveryAPI
 from .core.config import settings
+from .database.session_manager import session_manager
+from .models.session import Session, SessionData, SessionMetadata
 
 
 # —— FastAPI 实例化 —— #
@@ -89,6 +91,54 @@ class MoleculeImageRequest(BaseModel):
 class CompleteWorkflowRequest(BaseModel):
     disease: str
     selected_targets: Optional[List[str]] = None
+
+
+# —— Session Management API —— #
+
+@app.post("/api/sessions", response_model=Session, summary="保存或更新会话")
+async def save_or_update_session(session_data: SessionData, session_id: Optional[str] = None):
+    """
+    保存一个新的会话或更新一个现有会话。
+    - 如果提供了 session_id，则更新现有会话。
+    - 如果未提供 session_id，则创建新会话。
+    """
+    try:
+        session = session_manager.save_session(session_data, session_id)
+        return session
+    except Exception as e:
+        logger.error(f"保存会话失败: {e}")
+        raise HTTPException(status_code=500, detail=f"无法保存会话: {str(e)}")
+
+@app.get("/api/sessions", response_model=List[SessionMetadata], summary="列出所有会话")
+async def list_sessions():
+    """
+    获取所有会话的元数据列表（ID, 标题, 更新时间），按更新时间降序排列。
+    """
+    try:
+        return session_manager.list_sessions()
+    except Exception as e:
+        logger.error(f"列出会话失败: {e}")
+        raise HTTPException(status_code=500, detail=f"无法列出会话: {str(e)}")
+
+@app.get("/api/sessions/{session_id}", response_model=Session, summary="获取特定会话")
+async def get_session(session_id: str):
+    """
+    通过ID获取一个完整的会话数据。
+    """
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="会话未找到")
+    return session
+
+@app.delete("/api/sessions/{session_id}", status_code=204, summary="删除会话")
+async def delete_session(session_id: str):
+    """
+    通过ID删除一个会话。
+    """
+    success = session_manager.delete_session(session_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="要删除的会话未找到")
+    return None
 
 
 # —— 路由实现 —— #
