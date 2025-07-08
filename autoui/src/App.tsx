@@ -37,6 +37,8 @@ export default function App() {
   // 分离记录选择理由和优化解释
   const [selectionReason, setSelectionReason] = useState<string | null>(null)
   const [optimizationExplanation, setOptimizationExplanation] = useState<string | null>(null)
+  // 科学分析解释
+  const [scientificAnalysis, setScientificAnalysis] = useState<string | null>(null)
   // 新增状态用于实时结构显示
   const [currentStructurePath, setCurrentStructurePath] = useState<string | null>(null)
   const [currentPocketCenter, setCurrentPocketCenter] = useState<[number, number, number] | null>(null)
@@ -67,6 +69,7 @@ export default function App() {
       targetExplanation,
       selectionReason,
       optimizationExplanation,
+      scientificAnalysis: scientificAnalysis || undefined,
       currentStructurePath,
       currentPocketCenter,
       currentProteinName,
@@ -110,6 +113,7 @@ export default function App() {
     setTargetExplanation(data.targetExplanation || null);
     setSelectionReason(data.selectionReason || null);
     setOptimizationExplanation(data.optimizationExplanation || null);
+    setScientificAnalysis(data.scientificAnalysis || null);
     setCurrentStructurePath(data.currentStructurePath || null);
     setCurrentPocketCenter(data.currentPocketCenter || null);
     setCurrentProteinName(data.currentProteinName || '蛋白质结构');
@@ -134,6 +138,7 @@ export default function App() {
     setTargetExplanation(null);
     setSelectionReason(null);
     setOptimizationExplanation(null);
+    setScientificAnalysis(null);
     setCurrentStructurePath(null);
     setCurrentPocketCenter(null);
     setCurrentProteinName('蛋白质结构');
@@ -199,6 +204,8 @@ export default function App() {
     setCurrentOptimizedSmiles(null)
     // 重置AlphaFold指示灯状态
     setIsUsingAlphaFold(false)
+    // 重置科学分析
+    setScientificAnalysis(null)
 
     try {
       // STEP 1: 靶点识别
@@ -497,6 +504,39 @@ export default function App() {
       const mi = await api.generateMoleculeImage(cd.optimized_smiles)
       addLog(7, '日志', JSON.stringify(mi))
       if (mi.success) setMoleculeImage(mi.image_data)
+
+      // STEP 8: 生成科学分析
+      addLog(7, '状态', 'AI 正在生成科学分析报告…')
+      
+      // 构建完整的工作流数据用于科学分析
+      const analysisData = {
+        disease,
+        gene_symbol: currentTarget,
+        uniprot_acc: workflowState?.uniprot_acc,
+        structure_path: workflowState?.structure_path,
+        pocket_center: selectedPocket.center,
+        smiles_list: allSmiles,
+        optimized_smiles: cd.optimized_smiles
+      }
+      
+      addLog(7, '日志', `科学分析数据: ${JSON.stringify(analysisData)}`)
+      
+      try {
+        const scientificAnalysisData = await api.generateScientificAnalysis(analysisData)
+        addLog(7, '日志', `科学分析响应: ${JSON.stringify(scientificAnalysisData)}`)
+        
+        if (scientificAnalysisData.success) {
+          setScientificAnalysis(scientificAnalysisData.explanation)
+          addLog(7, '状态', '✅ 科学分析报告生成完成')
+          addLog(7, '决策', `科学分析内容（前100字符）: ${scientificAnalysisData.explanation.substring(0, 100)}...`)
+          console.log('科学分析已设置:', scientificAnalysisData.explanation.substring(0, 200))
+        } else {
+          addLog(7, '状态', `❌ 科学分析报告生成失败: ${scientificAnalysisData.error || '未知错误'}`)
+        }
+      } catch (analysisError: any) {
+        addLog(7, '状态', `科学分析API调用失败: ${analysisError.message}`)
+        console.error('科学分析生成错误:', analysisError)
+      }
 
       // 最后一步：结果保存
       setStep(8)
@@ -913,15 +953,24 @@ export default function App() {
                     <WorkflowStepper
                       currentStep={step}
                     />
+                    {/* 调试输出 */}
+                    {console.log('Step 8 - ResultPanel数据:', {
+                      disease,
+                      geneSymbol: decisionTarget?.selected_option,
+                      targetExplanation: targetExplanation ? `${targetExplanation.substring(0, 50)}...` : null,
+                      scientificAnalysis: scientificAnalysis ? `${scientificAnalysis.substring(0, 50)}...` : null,
+                      explanation: (scientificAnalysis || decisionCompound?.explanation) ? 
+                        `${(scientificAnalysis || decisionCompound?.explanation).substring(0, 50)}...` : null
+                    })}
                     <ResultPanel
                       disease={disease}
                       geneSymbol={decisionTarget?.selected_option || ''}
                       uniprotAcc={workflowState?.uniprot_acc}
                       pocketCenter={decisionPocket?.pocket_center || null}
                       optimizedSmiles={decisionCompound?.optimized_smiles || null}
-                      explanation={decisionCompound?.explanation || null}
-                      selectionReason={selectionReason}
-                      optimizationExplanation={optimizationExplanation}
+                      explanation={scientificAnalysis || decisionCompound?.explanation || null}
+                      // selectionReason={selectionReason}
+                      // optimizationExplanation={optimizationExplanation}
                       moleculeImage={moleculeImage}
                       structurePath={workflowState?.structure_path}
                       targetExplanation={targetExplanation}

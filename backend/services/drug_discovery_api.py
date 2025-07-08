@@ -564,6 +564,32 @@ class DrugDiscoveryAPI:
                 "error": str(e)
             }
     
+    @staticmethod
+    def generate_scientific_analysis(workflow_data: Dict[str, Any]) -> Dict:
+        """生成科学分析解释"""
+        try:
+            # 验证必要的工作流数据
+            if not workflow_data.get("disease") or not workflow_data.get("gene_symbol"):
+                return {
+                    "success": False,
+                    "error": "缺少必要的工作流数据"
+                }
+            
+            api = DrugDiscoveryAPI()
+            explanation = api.ai_engine.ai_explain_results(workflow_data)
+            
+            return {
+                "success": True,
+                "explanation": explanation
+            }
+            
+        except Exception as e:
+            logger.error(f"生成科学分析失败: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
     def get_verified_target(self, disease: str) -> Dict:
         """获取已验证的靶点"""
         try:

@@ -133,6 +133,17 @@ const ResultPanel: React.FC<Props> = ({
   structurePath,
   targetExplanation
 }) => {
+  
+  // 调试输出 - 检查传入的数据
+  console.log('ResultPanel props:', {
+    disease,
+    geneSymbol,
+    uniprotAcc,
+    targetExplanation: targetExplanation ? `${targetExplanation.substring(0, 50)}...` : null,
+    explanation: explanation ? `${explanation.substring(0, 50)}...` : null,
+    selectionReason: selectionReason ? `${selectionReason.substring(0, 50)}...` : null,
+    optimizationExplanation: optimizationExplanation ? `${optimizationExplanation.substring(0, 50)}...` : null
+  });
   return (
     <Panel>
       <Section>
@@ -156,15 +167,6 @@ const ResultPanel: React.FC<Props> = ({
           </InfoCard>
         </InfoGrid>
       </Section>
-
-      {targetExplanation && (
-        <Section>
-          <SectionTitle>靶点分析</SectionTitle>
-          <ExplanationSection>
-            <p>{targetExplanation}</p>
-          </ExplanationSection>
-        </Section>
-      )}
 
       {(moleculeImage || dockingImage || structurePath) && (
         <Section>
@@ -194,53 +196,45 @@ const ResultPanel: React.FC<Props> = ({
 
       <Section>
         <SectionTitle>科学分析</SectionTitle>
-        {explanation ? (
+        
+        {/* 靶点分析部分 */}
+        {targetExplanation && (
+          <ExplanationSection>
+            <h4>靶点分析</h4>
+            <p>{targetExplanation}</p>
+          </ExplanationSection>
+        )}
+        
+        {/* AI生成的综合科学分析 */}
+        {explanation && (
+          <ExplanationSection>
+            <h4>药物发现科学解释</h4>
+            <p style={{ lineHeight: '1.8', whiteSpace: 'pre-line' }}>{explanation}</p>
+          </ExplanationSection>
+        )}
+        
+        {/* 化合物选择和优化的详细解释 */}
+        {(selectionReason || optimizationExplanation) && (
           <>
-            {/* 优先使用传入的已解析的选择理由和优化解释 */}
-            {selectionReason || optimizationExplanation ? (
-              <>
-                <ExplanationSection>
-                  <h4>选择理由</h4>
-                  <p>{selectionReason || '未提供选择理由'}</p>
-                </ExplanationSection>
-                
-                <ExplanationSection>
-                  <h4>优化解释</h4>
-                  <p>{optimizationExplanation || '未提供优化解释'}</p>
-                </ExplanationSection>
-              </>
-            ) : (
-              // 如果没有预解析的值，则尝试解析explanation字符串
-              (() => {
-                // 尝试从返回的解释中解析出选择理由和优化解释
-                const selectReasonMatch = explanation.match(/选择理由:\s*(.*?)(?=\n\n优化解释:|$)/s);
-                const optimizeExplainMatch = explanation.match(/优化解释:\s*(.*?)$/s);
-                
-                const selectReason = selectReasonMatch ? selectReasonMatch[1].trim() : null;
-                const optimizeExplain = optimizeExplainMatch ? optimizeExplainMatch[1].trim() : null;
-                
-                return (
-                  <>
-                    <ExplanationSection>
-                      <h4>选择理由</h4>
-                      <p>{selectReason || '未提供选择理由'}</p>
-                    </ExplanationSection>
-                    
-                    <ExplanationSection>
-                      <h4>优化解释</h4>
-                      <p>{optimizeExplain || '未提供优化解释'}</p>
-                    </ExplanationSection>
-                    
-                    {!selectReason && !optimizeExplain && (
-                      <p>{explanation}</p>
-                    )}
-                  </>
-                );
-              })()
+            {selectionReason && (
+              <ExplanationSection>
+                <h4>化合物选择理由</h4>
+                <p>{selectionReason}</p>
+              </ExplanationSection>
+            )}
+            
+            {optimizationExplanation && (
+              <ExplanationSection>
+                <h4>分子优化解释</h4>
+                <p>{optimizationExplanation}</p>
+              </ExplanationSection>
             )}
           </>
-        ) : (
-          <p>暂无分析</p>
+        )}
+        
+        {/* 如果没有任何分析内容 */}
+        {!targetExplanation && !explanation && !selectionReason && !optimizationExplanation && (
+          <p>暂无分析数据</p>
         )}
       </Section>
 

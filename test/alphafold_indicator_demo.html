@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaFold指示灯演示</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .title-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        h3 {
+            margin: 2px 0 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .designer-credit {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #9CA3AF;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.85;
+            text-align: center;
+        }
+
+        /* AlphaFold指示灯样式 */
+        .alphafold-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            font-size: 11px;
+            color: #059669;
+            animation: alphafoldPulse 2s ease-in-out infinite;
+        }
+
+        .indicator-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        .indicator-text {
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        @keyframes alphafoldPulse {
+            0%, 100% {
+                background: rgba(34, 197, 94, 0.1);
+                border-color: rgba(34, 197, 94, 0.2);
+            }
+            50% {
+                background: rgba(34, 197, 94, 0.15);
+                border-color: rgba(34, 197, 94, 0.3);
+            }
+        }
+
+        @keyframes dotPulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.2);
+            }
+        }
+
+        .toggle-button {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .toggle-button:hover {
+            background: #4338ca;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #059669;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="title-row">
+            <h1>Protein Dance</h1>
+            <h3>基于DeepSeek的全自动制药智能体</h3>
+            <div class="designer-credit">Designed by Zhenxiong W. & Boran C. Guided by Dr Lingfang T. in Biochemphysics</div>
+            <!-- AlphaFold指示灯 -->
+            <div class="alphafold-indicator" id="indicator">
+                <span class="indicator-dot"></span>
+                <span class="indicator-text">AlphaFold AI预测结构</span>
+            </div>
+        </div>
+
+        <button class="toggle-button" onclick="toggleIndicator()">
+            切换指示灯显示/隐藏
+        </button>
+
+        <div class="description">
+            <h4>AlphaFold指示灯说明：</h4>
+            <ul>
+                <li><strong>PDB优先策略</strong>：系统首先尝试获取实验解析的PDB结构</li>
+                <li><strong>AlphaFold备选</strong>：当PDB结构不可用时，使用AlphaFold AI预测结构</li>
+                <li><strong>指示灯功能</strong>：当使用AlphaFold结构时，在界面顶部显示绿色脉冲指示灯</li>
+                <li><strong>视觉反馈</strong>：让用户清楚知道当前使用的是AI预测结构而非实验结构</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function toggleIndicator() {
+            const indicator = document.getElementById('indicator');
+            if (indicator.style.display === 'none') {
+                indicator.style.display = 'flex';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

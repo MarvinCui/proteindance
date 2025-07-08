@@ -92,6 +92,15 @@ class CompleteWorkflowRequest(BaseModel):
     disease: str
     selected_targets: Optional[List[str]] = None
 
+class ScientificAnalysisRequest(BaseModel):
+    disease: str
+    gene_symbol: str
+    uniprot_acc: Optional[str] = None
+    structure_path: Optional[str] = None
+    pocket_center: Optional[List[float]] = None
+    smiles_list: Optional[List[str]] = None
+    optimized_smiles: Optional[str] = None
+
 
 # —— Session Management API —— #
 
@@ -354,6 +363,26 @@ async def complete_workflow(req: CompleteWorkflowRequest):
 async def decision_explanations():
     try:
         return DrugDiscoveryAPI.get_decision_explanations()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scientific-analysis")
+async def scientific_analysis(req: ScientificAnalysisRequest):
+    if not req.disease or not req.gene_symbol:
+        raise HTTPException(status_code=400, detail="缺少必要参数")
+    try:
+        # 构建工作流数据
+        workflow_data = {
+            "disease": req.disease,
+            "gene_symbol": req.gene_symbol,
+            "uniprot_acc": req.uniprot_acc,
+            "structure_path": req.structure_path,
+            "pocket_center": req.pocket_center,
+            "smiles_list": req.smiles_list or [],
+            "optimized_smiles": req.optimized_smiles
+        }
+        return DrugDiscoveryAPI.generate_scientific_analysis(workflow_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

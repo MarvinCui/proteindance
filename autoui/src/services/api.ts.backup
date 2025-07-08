@@ -35,7 +35,7 @@ async function postJson<T>(path: string, body: any): Promise<ApiResponse<T>> {
   return res.json();
 }
 
-async function getJson<T>(path: string): Promise<ApiResponse<T>> {
+async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) {
     const text = await res.text();

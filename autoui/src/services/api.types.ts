@@ -14,6 +14,7 @@ export interface SessionData {
     targetExplanation?: string;
     selectionReason?: string;
     optimizationExplanation?: string;
+    scientificAnalysis?: string;
     currentStructurePath?: string;
     currentPocketCenter?: [number, number, number];
     currentProteinName?: string;
