@@ -44,4 +44,5 @@ class SessionMetadata(BaseModel):
     """
     id: str
     title: str
+    created_at: float
     updated_at: float

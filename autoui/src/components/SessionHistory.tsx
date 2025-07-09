@@ -36,7 +36,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSessionSelect,
       const sessionList = await api.listSessions();
       // Sort sessions by creation time, newest first
       const sortedSessions = sessionList.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (b.created_at || 0) - (a.created_at || 0)
       );
       setSessions(sortedSessions);
     } catch (error) {
@@ -103,12 +103,16 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSessionSelect,
               <div className="session-content">
                 <span className="session-title">{session.title}</span>
                 <span className="session-timestamp">
-                  {new Date(session.created_at).toLocaleString('zh-CN', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {(() => {
+                    if (!session.created_at) return '刚刚';
+                    const date = new Date(session.created_at * 1000); // Convert Unix timestamp to milliseconds
+                    return isNaN(date.getTime()) ? '刚刚' : date.toLocaleString('zh-CN', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+                  })()}
                 </span>
               </div>
               <button onClick={(e) => handleDeleteSession(session.id, e)} className="delete-btn" title="Delete Session">×</button>

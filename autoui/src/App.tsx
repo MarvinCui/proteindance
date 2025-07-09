@@ -639,7 +639,7 @@ export default function App() {
         .app {
           position: relative;
           width: 100%;
-          max-width: 900px;
+          max-width: 810px; /* Reduced by 10% from 900px */
           margin: 0 auto;
           background: #fff;
           border-radius: 8px;

@@ -35,6 +35,6 @@ export interface Session {
 export interface SessionMetadata {
     id: string;
     title: string;
-    created_at: string;
-    last_modified: string;
+    created_at: number;
+    updated_at: number;
 }

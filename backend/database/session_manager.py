@@ -81,9 +81,9 @@ class SessionManager:
     def list_sessions(self) -> List[SessionMetadata]:
         """Lists all sessions with minimal metadata, sorted by last updated."""
         with self._get_db_connection() as conn:
-            cursor = conn.execute("SELECT id, title, updated_at FROM sessions ORDER BY updated_at DESC")
+            cursor = conn.execute("SELECT id, title, created_at, updated_at FROM sessions ORDER BY updated_at DESC")
             rows = cursor.fetchall()
-            return [SessionMetadata(id=row['id'], title=row['title'], updated_at=row['updated_at']) for row in rows]
+            return [SessionMetadata(id=row['id'], title=row['title'], created_at=row['created_at'], updated_at=row['updated_at']) for row in rows]
 
     def delete_session(self, session_id: str) -> bool:
         """Deletes a session by its ID."""
