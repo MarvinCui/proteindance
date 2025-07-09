@@ -562,7 +562,8 @@ export default function App() {
           display: flex;
           height: 100vh;
           width: 100vw;
-          transition: padding-left 0.3s ease-in-out; /* Smooth transition for layout shift */
+          overflow: hidden; /* Prevent overall wrapper from scrolling */
+          transition: padding-left 0.3s ease-in-out;
         }
         .session-history-container {
           position: fixed; /* Fixed position to overlay or slide in/out */
@@ -612,33 +613,43 @@ export default function App() {
         .content-and-right-panel-wrapper {
             display: flex;
             flex-grow: 1;
-            width: 100%;
-            margin-left: 280px; /* Make space for the fixed sidebar */
-            transition: margin-left 0.3s ease-in-out;
+            width: calc(100% - 280px); /* Account for left sidebar */
+            margin-left: 280px;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden; /* Prevent horizontal scroll */
         }
 
         .session-history-container.collapsed ~ .content-and-right-panel-wrapper {
             margin-left: 0;
+            width: 100%;
         }
 
         .main-content-wrapper {
-          flex-grow: 1;
-          overflow-y: auto; /* This is the main scrollable area */
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden; /* Prevent horizontal scroll */
           padding: 12px;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          min-width: 0; /* Allow content to shrink */
         }
 
         .app {
           position: relative;
           width: 100%;
           max-width: 900px;
-          margin: 0 auto; /* Center the app panel */
+          margin: 0 auto;
           background: #fff;
           border-radius: 8px;
           box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-          padding: 16px; font-family: 'Segoe UI', sans-serif;
+          padding: 16px;
+          font-family: 'Segoe UI', sans-serif;
           border: 2px solid transparent;
           z-index: 1;
-          align-self: flex-start; /* Important for scrolling */
+          flex-shrink: 0; /* Prevent shrinking */
+          min-height: fit-content;
         }
         .app.active {
           animation: borderBreathe 2.5s ease-in-out infinite;
@@ -781,14 +792,16 @@ export default function App() {
         /* 侧边栏样式 */
         .side-panel {
           width: 340px;
-          flex-shrink: 0;
-          height: 100vh; /* Full viewport height */
+          min-width: 280px; /* Minimum width to maintain functionality */
+          max-width: 400px; /* Maximum width to prevent overflow */
+          flex-shrink: 1; /* Allow shrinking if needed */
+          height: 100vh;
           max-height: 100vh;
           overflow: hidden;
           display: flex;
           flex-direction: column;
           padding: 8px;
-          background-color: #f0f2f7; /* Match body background */
+          background-color: #f0f2f7;
           transition: width 0.3s ease-in-out;
         }
 

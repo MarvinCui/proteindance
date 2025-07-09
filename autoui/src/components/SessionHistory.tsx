@@ -100,7 +100,17 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSessionSelect,
               onClick={() => handleSessionClick(session.id)}
               title={session.title}
             >
-              <span className="session-title">{session.title}</span>
+              <div className="session-content">
+                <span className="session-title">{session.title}</span>
+                <span className="session-timestamp">
+                  {new Date(session.created_at).toLocaleString('zh-CN', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
+              </div>
               <button onClick={(e) => handleDeleteSession(session.id, e)} className="delete-btn" title="Delete Session">×</button>
             </li>
           ))}
@@ -161,31 +171,69 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSessionSelect,
           flex-grow: 1;
         }
         .session-item {
-          padding: 10px 12px;
-          margin-bottom: 4px;
-          border-radius: 6px;
+          padding: 12px 14px;
+          margin-bottom: 6px;
+          border-radius: 8px;
           cursor: pointer;
-          transition: background-color 0.2s, color 0.2s;
+          transition: all 0.2s ease;
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           font-size: 14px;
           color: #374151;
+          border: 1px solid transparent;
+          position: relative;
+        }
+        .session-item::after {
+          content: '';
+          position: absolute;
+          bottom: -3px;
+          left: 14px;
+          right: 14px;
+          height: 1px;
+          background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+          opacity: 0.6;
+        }
+        .session-item:last-child::after {
+          display: none;
         }
         .session-item:hover {
-          background-color: #f3f4f6; /* Light gray hover */
+          background-color: #f3f4f6;
+          border-color: #d1d5db;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .session-item.active {
-          background-color: #eef2ff; /* Indigo light */
-          color: #4338ca; /* Indigo dark text */
+          background-color: #eef2ff;
+          border-color: #a5b4fc;
+          color: #4338ca;
           font-weight: 600;
+          box-shadow: 0 2px 12px rgba(79, 70, 229, 0.15);
+        }
+        .session-content {
+          display: flex;
+          flex-direction: column;
+          flex-grow: 1;
+          margin-right: 8px;
+          min-width: 0;
         }
         .session-title {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          flex-grow: 1;
-          margin-right: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 1.3;
+          margin-bottom: 2px;
+        }
+        .session-timestamp {
+          font-size: 11px;
+          color: #9ca3af;
+          font-weight: 400;
+          line-height: 1.2;
+        }
+        .session-item.active .session-timestamp {
+          color: #6366f1;
         }
         .delete-btn {
           background: transparent;
