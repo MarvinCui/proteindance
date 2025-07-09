@@ -1,0 +1,8 @@
+{
+  "vocab_size": 34,
+  "pad_token": "<|pad|>",
+  "eos_token": "<|endoftext|>",
+  "unk_token": "<|unk|>",
+  "bos_token": "<|endoftext|>",
+  "tokenizer_class": "GPT2Tokenizer"
+}
