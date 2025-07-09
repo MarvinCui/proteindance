@@ -58,9 +58,12 @@ class DrugDiscoveryAPI:
             }
         except Exception as e:
             logger.error(f"获取疾病靶点失败: {str(e)}")
+            # 由于AI引擎已经有了fallback机制，这里应该不会抛出异常
+            # 但为了保险起见，还是返回默认靶点
             return {
-                "success": False,
-                "error": str(e)
+                "success": True,
+                "targets": ["EGFR", "TP53", "BRAF", "HER2", "VEGF"],
+                "warning": f"AI调用失败，使用默认靶点: {str(e)}"
             }
     
     @staticmethod

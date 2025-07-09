@@ -73,18 +73,8 @@ class AIEngine:
 请返回最合适的蛋白基因符号列表（如EGFR, TP53等），每行一个。禁止把多个叠在一起。
 返回{top_k}个以内的靶点。"""
             
-            # 调用AI API
-            with show_spinner("AI分析中..."):
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.2 + (innovation_level * 0.05)
-                )
-            
-            text = response.choices[0].message.content.strip()
-            
-            # 解析靶点列表
-            targets = self._parse_targets_from_text(text, top_k)
+            # 调用AI API，带重试机制
+            targets = self._call_ai_with_retry(prompt, innovation_level, top_k)
             
             if not targets:
                 logger.warning("AI未返回有效靶点，使用默认靶点")
@@ -95,7 +85,9 @@ class AIEngine:
             
         except Exception as e:
             logger.error(f"获取疾病靶点失败: {str(e)}")
-            raise APIError(f"获取疾病靶点失败: {str(e)}")
+            # 在失败时返回默认靶点而不是抛出异常
+            logger.warning("使用默认靶点作为备选")
+            return self._get_default_targets(disease, top_k)
     
     def ai_make_decision(self, options: List[str], context: str, question: str) -> Tuple[int, str]:
         """
@@ -459,3 +451,57 @@ class AIEngine:
         except ImportError:
             # 如果没有rdkit，进行简单验证
             return bool(smiles and len(smiles.strip()) > 0 and not smiles.isspace())
+    
+    def _call_ai_with_retry(self, prompt: str, innovation_level: int, top_k: int, max_retries: int = 3) -> List[str]:
+        """
+        带重试机制的AI调用
+        
+        Args:
+            prompt: 提示词
+            innovation_level: 创新度
+            top_k: 返回数量
+            max_retries: 最大重试次数
+        
+        Returns:
+            靶点列表
+        """
+        import socket
+        from openai import OpenAI
+        
+        last_exception = None
+        
+        for attempt in range(max_retries):
+            try:
+                with show_spinner(f"AI分析中... (尝试 {attempt + 1}/{max_retries})"):
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.2 + (innovation_level * 0.05),
+                        timeout=30  # 30秒超时
+                    )
+                
+                text = response.choices[0].message.content.strip()
+                targets = self._parse_targets_from_text(text, top_k)
+                
+                if targets:  # 如果成功获取到靶点，返回结果
+                    return targets
+                else:
+                    logger.warning(f"尝试 {attempt + 1} 未返回有效靶点")
+                    
+            except (socket.error, ConnectionError, BrokenPipeError) as e:
+                last_exception = e
+                logger.warning(f"网络连接错误 (尝试 {attempt + 1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)  # 指数退避
+                    continue
+                    
+            except Exception as e:
+                last_exception = e
+                logger.error(f"AI调用失败 (尝试 {attempt + 1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                    
+        # 所有重试都失败了
+        logger.error(f"AI调用最终失败: {str(last_exception)}")
+        return []

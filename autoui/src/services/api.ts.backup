@@ -130,6 +130,18 @@ export const api = {
     return postJson<{ explanation: string }>('/target-explanation', { gene_symbol, disease });
   },
 
+  generateScientificAnalysis: (params: {
+    disease: string;
+    gene_symbol: string;
+    uniprot_acc?: string;
+    structure_path?: string;
+    pocket_center?: [number, number, number];
+    smiles_list?: string[];
+    optimized_smiles?: string;
+  }) => {
+    return postJson<{ explanation: string }>('/scientific-analysis', params);
+  },
+
   generateProteinVisualization: (structure_path: string, pocket_center?: [number, number, number]) => {
     return postJson<{ html: string }>('/protein-visualization', { structure_path, pocket_center });
   },

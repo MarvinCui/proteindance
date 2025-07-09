@@ -74,6 +74,9 @@ npm run build
 
 # Type check
 npm run type-check
+
+# Preview production build locally
+npm run preview
 ```
 
 ### Production Deployment
@@ -82,23 +85,50 @@ npm run type-check
 docker-compose -f docker-compose.prod.yml up --build
 ```
 
+### Testing Commands
+
+#### Backend Testing
+```bash
+# Run authentication system tests
+python test_auth.py
+# or
+bash test_auth.sh
+
+# Test PDB priority logic
+python test_pdb_priority.py
+
+# Test structure acquisition priority
+python test_structure_priority.py
+
+# Complete environment setup and startup
+bash start.sh
+```
+
 ## Critical Configuration
 
 ### API Base URL Configuration
 The frontend **must** be configured to point to the correct backend URL in `autoui/src/services/api.ts`:
 ```typescript
-const API_BASE = 'http://localhost:5001/api';  // Adjust port as needed
+const API_BASE = 'http://localhost:5001/api';  // Development
+// Production URLs may differ - adjust as needed
 ```
 
 ### AI Configuration
 Backend AI services are configured in `backend/core/config.py`:
 - OpenAI API endpoint: SiliconFlow (DeepSeek-V3 model)
-- API key is hardcoded for development (should be moved to environment variables for production)
+- **Security Note**: API key is currently hardcoded for development (should be moved to environment variables for production)
 
 ### Database
 - SQLite database `proteindance.db` in project root
 - Session management through `backend/database/session_manager.py`
 - Automatic session persistence for workflow state
+
+### Environment Variables
+For production deployment, configure these environment variables:
+- API keys (currently hardcoded in config.py)
+- Database settings
+- Log levels
+- External API endpoints
 
 ## Workflow Architecture
 
