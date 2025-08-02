@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子对接与可视化工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .header-container {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .form-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            font-weight: 600;
+        }
+        .custom-file-label::after {
+            content: "浏览...";
+        }
+        .btn-primary {
+            background-color: #2575fc;
+            border-color: #2575fc;
+        }
+        .btn-primary:hover {
+            background-color: #1a68e5;
+            border-color: #1a68e5;
+        }
+        .alert-info {
+            background-color: #e3f2fd;
+            border-color: #b3d7ff;
+        }
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+        .molecule-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #2575fc;
+        }
+        .feature-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            height: 100%;
+        }
+        .feature-box h5 {
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .feature-box p {
+            color: #6c757d;
+        }
+        .debug-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header-container text-center">
+            <h1 class="display-4"><i class="fas fa-dna"></i> 分子对接与可视化平台</h1>
+            <p class="lead">上传蛋白质受体和配体，配置参数，执行分子对接，并获得高质量可视化结果</p>
+        </div>
+        
+        <!-- 功能介绍 -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="feature-box">
+                    <i class="fas fa-atom molecule-icon"></i>
+                    <h5>AutoDock Vina 对接</h5>
+                    <p>使用强大的AutoDock Vina算法进行高效、准确的分子对接</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="feature-box">
+                    <i class="fas fa-cubes molecule-icon"></i>
+                    <h5>高级3D可视化</h5>
+                    <p>使用PyMOL和3Dmol.js技术生成高质量的对接结果可视化</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="feature-box">
+                    <i class="fas fa-chart-line molecule-icon"></i>
+                    <h5>结果分析</h5>
+                    <p>获取详细的结合能分析、结合位点可视化和结构相互作用图</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 上传表单 -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-card mb-4">
+                    <h3 class="mb-4">创建新的对接任务</h3>
+                    <!-- 注意：这里不使用表单的submit事件，改用按钮的click事件 -->
+                    <div id="dockingForm">
+                        <div class="row">
+                            <!-- 文件上传部分 -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">文件上传</div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="receptorFile" class="form-label">受体蛋白质文件</label>
+                                            <input class="form-control" type="file" id="receptorFile" name="receptor" accept=".pdbqt,.pdb">
+                                            <div class="form-text">支持的格式: .pdbqt, .pdb</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ligandFile" class="form-label">配体分子文件</label>
+                                            <input class="form-control" type="file" id="ligandFile" name="ligand" accept=".pdbqt,.pdb,.mol2,.sdf">
+                                            <div class="form-text">支持的格式: .pdbqt, .pdb, .mol2, .sdf</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> <strong>提示:</strong> 
+                                    为了获得最佳结果，请确保文件已正确准备（移除水分子，添加氢原子，设置适当的电荷）。
+                                </div>
+                            </div>
+                            
+                            <!-- 参数设置部分 -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">对接参数设置</div>
+                                    <div class="card-body">
+                                        <h6 class="mb-3">对接盒子中心坐标</h6>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-4">
+                                                <label for="centerX" class="form-label">X</label>
+                                                <input type="number" step="0.1" class="form-control" id="centerX" name="center_x" value="0.0">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="centerY" class="form-label">Y</label>
+                                                <input type="number" step="0.1" class="form-control" id="centerY" name="center_y" value="0.0">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="centerZ" class="form-label">Z</label>
+                                                <input type="number" step="0.1" class="form-control" id="centerZ" name="center_z" value="0.0">
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-3">对接盒子大小</h6>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-4">
+                                                <label for="sizeX" class="form-label">X</label>
+                                                <input type="number" step="0.1" class="form-control" id="sizeX" name="size_x" value="20.0">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="sizeY" class="form-label">Y</label>
+                                                <input type="number" step="0.1" class="form-control" id="sizeY" name="size_y" value="20.0">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="sizeZ" class="form-label">Z</label>
+                                                <input type="number" step="0.1" class="form-control" id="sizeZ" name="size_z" value="20.0">
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-3">高级参数</h6>
+                                        <div class="mb-3">
+                                            <label for="exhaustiveness" class="form-label">搜索彻底程度</label>
+                                            <input type="range" class="form-range" min="1" max="16" step="1" id="exhaustiveness" name="exhaustiveness" value="8">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="form-text">1 (快速)</span>
+                                                <span class="form-text" id="exhaustivenessValue">8</span>
+                                                <span class="form-text">16 (彻底)</span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="numModes" class="form-label">构象数量</label>
+                                            <input type="number" class="form-control" id="numModes" name="num_modes" min="1" max="20" value="9">
+                                            <div class="form-text">生成的结合构象数量</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="energyRange" class="form-label">能量范围</label>
+                                            <input type="number" class="form-control" id="energyRange" name="energy_range" min="1" max="10" value="3">
+                                            <div class="form-text">最高和最低结合能之间的最大差值 (kcal/mol)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 提交按钮 -->
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary btn-lg" id="submitBtn" onclick="submitDocking()">
+                                <i class="fas fa-rocket"></i> 开始分子对接
+                            </button>
+                        </div>
+
+                        <!-- 调试信息 -->
+                        <div id="debugInfo" class="debug-info mt-3"></div>
+                    </div>
+                </div>
+                
+                <!-- 任务状态显示 -->
+                <div id="taskStatus" style="display: none;">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>任务状态</span>
+                            <a href="tasks" class="btn btn-sm btn-outline-primary">查看所有任务</a>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title" id="taskMessage">处理中...</h5>
+                            <div class="mb-3">
+                                <div class="progress">
+                                    <div id="taskProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <p>任务ID: <span id="taskId" class="text-monospace"></span></p>
+                            <div id="taskDetails"></div>
+                            <div id="taskResults" style="display: none;">
+                                <h5 class="mt-4">结果预览</h5>
+                                <div class="row" id="resultImages"></div>
+                                <div class="mt-3">
+                                    <a id="viewerLink" href="#" target="_blank" class="btn btn-primary">
+                                        <i class="fas fa-cube"></i> 查看3D模型
+                                    </a>
+                                    <a id="taskDetailsLink" href="#" class="btn btn-outline-secondary">
+                                        <i class="fas fa-search"></i> 查看详细结果
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-light text-center text-muted py-4 mt-5">
+        <div class="container">
+            <p>分子对接与可视化平台 &copy; 2025</p>
+            <p class="mb-0 small">使用AutoDock Vina进行分子对接，使用PyMOL和3Dmol.js进行可视化</p>
+            <p class="mb-0 small">当前登录用户: realwangrenlin | 当前时间: 2025-07-19 03:08:11</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 更新滑块值显示
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('exhaustiveness').addEventListener('input', function() {
+                document.getElementById('exhaustivenessValue').textContent = this.value;
+            });
+            
+            // 开发模式下显示调试按钮
+            const debugMode = false;
+            if (debugMode) {
+                document.getElementById('debugInfo').style.display = 'block';
+                
+                // 添加调试按钮
+                const debugBtn = document.createElement('button');
+                debugBtn.className = 'btn btn-sm btn-warning mt-2';
+                debugBtn.textContent = 'Show Debug Info';
+                debugBtn.onclick = function() {
+                    showDebugInfo();
+                };
+                document.getElementById('debugInfo').appendChild(debugBtn);
+            }
+        });
+        
+        // 提交对接任务
+        function submitDocking() {
+            // 显示提交开始的调试信息
+            console.log('提交按钮被点击');
+            
+            // 验证表单
+            const receptorFile = document.getElementById('receptorFile').files[0];
+            const ligandFile = document.getElementById('ligandFile').files[0];
+            
+            if (!receptorFile || !ligandFile) {
+                alert('请上传受体和配体文件');
+                return;
+            }
+            
+            // 禁用提交按钮
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 提交中...';
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            
+            // 添加文件
+            formData.append('receptor', receptorFile);
+            formData.append('ligand', ligandFile);
+            
+            // 添加参数
+            formData.append('center_x', document.getElementById('centerX').value);
+            formData.append('center_y', document.getElementById('centerY').value);
+            formData.append('center_z', document.getElementById('centerZ').value);
+            formData.append('size_x', document.getElementById('sizeX').value);
+            formData.append('size_y', document.getElementById('sizeY').value);
+            formData.append('size_z', document.getElementById('sizeZ').value);
+            formData.append('exhaustiveness', document.getElementById('exhaustiveness').value);
+            formData.append('num_modes', document.getElementById('numModes').value);
+            formData.append('energy_range', document.getElementById('energyRange').value);
+            
+            console.log('FormData已创建，准备发送请求...');
+            
+            // 发送请求
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('收到服务器响应:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('解析的JSON数据:', data);
+                
+                if (data.success) {
+                    // 显示任务状态
+                    document.getElementById('taskId').textContent = data.task_id;
+                    document.getElementById('taskMessage').textContent = data.message;
+                    document.getElementById('taskProgress').style.width = '10%';
+                    document.getElementById('taskStatus').style.display = 'block';
+                    
+                    // 开始轮询任务状态
+                    pollTaskStatus(data.task_id);
+                } else {
+                    alert('上传失败: ' + data.error);
+                    resetForm();
+                }
+            })
+            .catch(error => {
+                console.error('请求错误:', error);
+                alert('发生错误，请重试');
+                resetForm();
+            });
+        }
+        
+        // 重置表单
+        function resetForm() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-rocket"></i> 开始分子对接';
+        }
+        
+        // 轮询任务状态
+        function pollTaskStatus(taskId) {
+            console.log('开始轮询任务状态:', taskId);
+            
+            const interval = setInterval(function() {
+                fetch(`/api/task/${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const task = data.task;
+                        console.log('任务状态更新:', task.status, task.progress);
+                        
+                        // 更新进度条
+                        document.getElementById('taskProgress').style.width = `${task.progress}%`;
+                        document.getElementById('taskMessage').textContent = task.message;
+                        
+                        // 任务完成
+                        if (task.status === 'completed') {
+                            clearInterval(interval);
+                            document.getElementById('taskProgress').classList.remove('progress-bar-animated');
+                            document.getElementById('taskProgress').classList.add('bg-success');
+                            
+                            // 显示结果
+                            showTaskResults(task);
+                            resetForm();
+                        } 
+                        // 任务错误
+                        else if (task.status === 'error') {
+                            clearInterval(interval);
+                            document.getElementById('taskProgress').classList.remove('progress-bar-animated');
+                            document.getElementById('taskProgress').classList.add('bg-danger');
+                            document.getElementById('taskMessage').textContent = `错误: ${task.message}`;
+                            resetForm();
+                        }
+                    } else {
+                        console.error('获取任务状态失败:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('轮询任务状态错误:', error);
+                });
+            }, 2000); // 每2秒轮询一次
+        }
+        
+        // 显示任务结果
+        function showTaskResults(task) {
+            console.log('显示任务结果:', task);
+            
+            const resultsDiv = document.getElementById('taskResults');
+            const imagesDiv = document.getElementById('resultImages');
+            
+            // 清除现有内容
+            imagesDiv.innerHTML = '';
+            
+            if (task.result_urls) {
+                // 显示结果区域
+                resultsDiv.style.display = 'block';
+                
+                // 添加绘图
+                if (task.result_urls.plots) {
+                    for (const [plotName, plotUrl] of Object.entries(task.result_urls.plots)) {
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'col-md-6 mb-4';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        
+                        const img = document.createElement('img');
+                        img.src = plotUrl;
+                        img.className = 'card-img-top';
+                        img.alt = plotName;
+                        
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body text-center';
+                        
+                        const title = document.createElement('h6');
+                        title.className = 'card-title';
+                        title.textContent = plotName.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        
+                        cardBody.appendChild(title);
+                        card.appendChild(img);
+                        card.appendChild(cardBody);
+                        colDiv.appendChild(card);
+                        imagesDiv.appendChild(colDiv);
+                    }
+                }
+                
+                // 添加PyMOL图像
+                if (task.result_urls.pymol_images) {
+                    task.result_urls.pymol_images.forEach(image => {
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'col-md-6 mb-4';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        
+                        const img = document.createElement('img');
+                        img.src = image.url;
+                        img.className = 'card-img-top';
+                        img.alt = image.name;
+                        
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body text-center';
+                        
+                        const title = document.createElement('h6');
+                        title.className = 'card-title';
+                        title.textContent = image.name.replace('.png', '').replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        
+                        cardBody.appendChild(title);
+                        card.appendChild(img);
+                        card.appendChild(cardBody);
+                        colDiv.appendChild(card);
+                        imagesDiv.appendChild(colDiv);
+                    }); 
+                }
+                
+                // 设置3D查看器链接
+                if (task.result_urls.viewer) {
+                    const viewerLink = document.getElementById('viewerLink');
+                    viewerLink.href = task.result_urls.viewer;
+                    viewerLink.style.display = 'inline-block';
+                } else {
+                    document.getElementById('viewerLink').style.display = 'none';
+                }
+                
+                // 设置详细结果链接
+                const taskDetailsLink = document.getElementById('taskDetailsLink');
+                taskDetailsLink.href = `/task/${task.id}`;
+            }
+            
+            // 添加结果摘要
+            const detailsDiv = document.getElementById('taskDetails');
+            if (task.results && task.results.best_result) {
+                const best = task.results.best_result;
+                detailsDiv.innerHTML = `
+                    <div class="alert alert-success mt-3">
+                        <h6>最佳结合构象</h6>
+                        <p>结合能: <strong>${best.affinity.toFixed(2)} kcal/mol</strong></p>
+                        <p>${best.assessment}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 显示调试信息
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = '<h5>调试信息</h5>';
+            
+            // 收集表单数据
+            const formData = {
+                receptor: document.getElementById('receptorFile').files[0] ? document.getElementById('receptorFile').files[0].name : 'No file',
+                ligand: document.getElementById('ligandFile').files[0] ? document.getElementById('ligandFile').files[0].name : 'No file',
+                center: [
+                    document.getElementById('centerX').value,
+                    document.getElementById('centerY').value,
+                    document.getElementById('centerZ').value
+                ],
+                box_size: [
+                    document.getElementById('sizeX').value,
+                    document.getElementById('sizeY').value,
+                    document.getElementById('sizeZ').value
+                ],
+                exhaustiveness: document.getElementById('exhaustiveness').value,
+                num_modes: document.getElementById('numModes').value,
+                energy_range: document.getElementById('energyRange').value
+            };
+            
+            // 显示表单数据
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(formData, null, 2);
+            debugDiv.appendChild(pre);
+        }
+    </script>
+</body>
+</html>

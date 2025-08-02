@@ -1,0 +1,22 @@
+name: molecular-docking
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - python=3.9
+  - pymol-open-source
+  - biopython
+  - numpy
+  - matplotlib
+  - plotly
+  - pandas
+  - jupyter
+  - rdkit
+  - openbabel
+  - flask
+  - pip
+  - pip:
+    - py3Dmol
+    - pymol
+    - flask-cors

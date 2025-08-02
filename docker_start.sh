@@ -3,6 +3,10 @@ set -e
 
 echo "🧬 Starting ProteinDance with Conda Environment..."
 
+# Create necessary directories with proper permissions
+mkdir -p /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow || true
+chmod 755 /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow || true
+
 # Activate conda environment
 source /opt/conda/etc/profile.d/conda.sh
 conda activate proteindance
@@ -34,12 +38,10 @@ except ImportError as e:
 try:
     import pymol
     print('✅ PyMOL imported successfully')
-    pymol.finish_launching()
-    print('✅ PyMOL launched successfully')
+    # Skip PyMOL initialization in Docker to avoid display issues
+    print('⚠️  Skipping PyMOL GUI test in Docker environment')
 except ImportError as e:
     print(f'❌ PyMOL import failed: {e}')
-except Exception as e:
-    print(f'⚠️  PyMOL launch failed: {e} (GUI features may be limited)')
 
 try:
     import fastapi

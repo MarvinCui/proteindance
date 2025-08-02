@@ -1,0 +1,20 @@
+=== API Log Started at 2025-07-19 17:50:00 ===
+[17:50:09] Uploaded protein file: protein_structure_2.pdbqt
+[17:50:15] Uploaded ligand file: original_ligand_2.pdbqt
+[17:51:16] Starting molecular docking pipeline...
+[17:51:16] Preparing protein structure...
+[17:51:16] Running molecular docking...
+[17:51:16] DEBUG: Docking parameters: {'exhaustiveness': 4, 'num_modes': 2, 'center_x': 111, 'center_y': 114, 'center_z': 119, 'search_size': 20}
+[17:53:59] Docking completed successfully
+[17:53:59] Generating visualizations...
+[17:53:59] DEBUG: Starting visualization step
+[17:53:59] DEBUG: Receptor file: ./docking_results/protein_receptor.pdbqt
+[17:53:59] DEBUG: Results file: ./docking_results/docking_results.pdbqt
+[17:53:59] DEBUG: Output dir: ./docking_results
+[17:53:59] DEBUG: Use PyMOL: True
+[17:53:59] DEBUG: Use web: True
+[17:53:59] DEBUG: Receptor file exists, size: 2168973 bytes
+[17:53:59] DEBUG: Results file exists, size: 22138 bytes
+[17:53:59] DEBUG: PyMOL imported successfully in API process
+[17:53:59] DEBUG: PyMOL cmd module available
+[17:53:59] DEBUG: Calling visualize_docking_results...

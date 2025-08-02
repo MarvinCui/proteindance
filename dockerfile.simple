@@ -1,0 +1,16 @@
+# 简化版本 - 基于已有镜像，修复权限问题
+FROM proteindance:production
+
+# 使用root用户修复权限
+USER root
+
+# 修改docker_start.sh权限并确保能创建目录
+RUN chmod 755 /app/docker_start.sh && \
+    mkdir -p /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow && \
+    chmod 777 /app/temp /tmp/drug_flow && \
+    chmod 755 /app/backend/logs /app/docking_results
+
+# 回到默认用户
+USER 1000
+
+CMD ["/bin/bash", "./docker_start.sh"]

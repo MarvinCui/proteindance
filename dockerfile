@@ -1,0 +1,150 @@
+# Multi-stage Dockerfile for ProteinDance with proper PyMOL installation
+# Stage 1: Build frontend  
+FROM node:18-slim AS frontend-builder
+
+WORKDIR /app/frontend
+COPY autoui/package*.json ./
+RUN npm ci
+
+COPY autoui/ ./
+# Set environment variables for production build
+ENV VITE_API_BASE_URL=http://localhost:5001/api
+ENV VITE_BACKEND_HOST=localhost
+ENV VITE_BACKEND_PORT=5001
+
+RUN npm run build
+
+# Stage 2: Python backend with conda and PyMOL
+FROM continuumio/miniconda3:latest AS backend
+
+# Install system dependencies for GUI and scientific packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    wget \
+    git \
+    lsof \
+    procps \
+    pkg-config \
+    # OpenGL and display libraries for PyMOL
+    libgl1-mesa-glx \
+    libgl1-mesa-dri \
+    libglu1-mesa \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libxtst6 \
+    libxi6 \
+    libxrandr2 \
+    libxss1 \
+    libgconf-2-4 \
+    # System libraries for scientific computing
+    libglib2.0-0 \
+    libsm6 \
+    libice6 \
+    libfontconfig1 \
+    libfreetype6 \
+    libxft2 \
+    # Additional dependencies
+    libopenblas-dev \
+    liblapack-dev \
+    libhdf5-dev \
+    libnetcdf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for frontend serving
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Create conda environment with Python 3.11
+RUN conda create -n proteindance python=3.11 -y
+
+# Activate environment and install packages
+SHELL ["conda", "run", "-n", "proteindance", "/bin/bash", "-c"]
+
+# Install core scientific packages via conda
+RUN conda install -c conda-forge \
+    numpy \
+    scipy \
+    matplotlib \
+    pandas \
+    pillow \
+    scikit-learn \
+    requests \
+    beautifulsoup4 \
+    click \
+    jinja2 \
+    packaging \
+    python-dateutil \
+    pytz \
+    tqdm \
+    -y
+
+# Install RDKit via conda (most reliable method)
+RUN conda install -c conda-forge rdkit -y
+
+# Install PyMOL via conda-forge (updated installation method)
+RUN conda update -n base conda -y && \
+    conda install -c conda-forge pymol-open-source -y
+
+# Install web framework and API packages via pip in conda env
+RUN pip install --no-cache-dir \
+    fastapi==0.115.12 \
+    uvicorn==0.34.2 \
+    pydantic==2.11.3 \
+    email-validator \
+    PyJWT \
+    passlib \
+    bcrypt \
+    python-dotenv
+
+# Install AI and bio packages
+RUN pip install --no-cache-dir \
+    openai==1.77.0 \
+    biopython==1.85 \
+    py3dmol==2.4.2 \
+    chembl-webresource-client==0.10.9 \
+    gprofiler-official==1.0.0 \
+    mygene==3.2.2 \
+    biothings-client==0.4.1
+
+# Install PyTorch (CPU version)
+RUN pip install --no-cache-dir \
+    torch>=2.0.0 \
+    torchvision \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Install Transformers with specific versions
+RUN pip install --no-cache-dir \
+    transformers>=4.53.0 \
+    safetensors>=0.5.0
+
+# Copy backend code and assets
+COPY backend/ ./backend/
+COPY p2rank/ ./p2rank/
+COPY vina ./vina
+COPY proteindance.db ./proteindance.db
+
+# Copy frontend build from previous stage
+COPY --from=frontend-builder /app/frontend/dist ./autoui/dist/
+
+# Copy scripts
+COPY start.sh ./start.sh
+COPY setup_conda_env.sh ./setup_conda_env.sh
+COPY docker_start.sh ./docker_start.sh
+RUN chmod +x start.sh setup_conda_env.sh docker_start.sh
+
+# Set environment variables
+ENV PATH="/opt/conda/envs/proteindance/bin:$PATH"
+ENV KMP_DUPLICATE_LIB_OK=TRUE
+ENV PYTHONPATH="/app:$PYTHONPATH"
+ENV DISPLAY=:99
+
+# Expose ports
+EXPOSE 5001 5173
+
+# Use the dedicated docker startup script
+CMD ["/bin/bash", "./docker_start.sh"]

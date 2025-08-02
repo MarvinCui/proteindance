@@ -1,0 +1,108 @@
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>分子对接结果可视化</title>
+                <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .info-panel { margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+                    .viewer-container { margin-bottom: 20px; }
+                    .poses-table { width: 100%; border-collapse: collapse; }
+                    .poses-table th, .poses-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .poses-table th { background-color: #f2f2f2; }
+                </style>
+            </head>
+            <body>
+                <h1>分子对接结果</h1>
+                
+                <div class="info-panel">
+                    <h3>对接信息</h3>
+                    <p><strong>配体SMILES:</strong> CCO</p>
+                    <p><strong>最佳评分:</strong> 0.00 kcal/mol</p>
+                    <p><strong>口袋中心:</strong> (10.00, 20.00, 30.00)</p>
+                    <p><strong>搜索盒子大小:</strong> 15 × 15 × 15 Å</p>
+                    <p><strong>找到构象数:</strong> 1</p>
+                </div>
+                
+                <div class="viewer-container">
+                    <div id="3dmolviewer_17525471067248619"  style="position: relative; width: 800px; height: 600px;">
+        <p id="3dmolwarning_17525471067248619" style="background-color:#ffcccc;color:black">3Dmol.js failed to load for some reason.  Please check your browser console for error messages.<br></p>
+        </div>
+<script>
+
+var loadScriptAsync = function(uri){
+  return new Promise((resolve, reject) => {
+    //this is to ignore the existence of requirejs amd
+    var savedexports, savedmodule;
+    if (typeof exports !== 'undefined') savedexports = exports;
+    else exports = {}
+    if (typeof module !== 'undefined') savedmodule = module;
+    else module = {}
+
+    var tag = document.createElement('script');
+    tag.src = uri;
+    tag.async = true;
+    tag.onload = () => {
+        exports = savedexports;
+        module = savedmodule;
+        resolve();
+    };
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+});
+};
+
+if(typeof $3Dmolpromise === 'undefined') {
+$3Dmolpromise = null;
+  $3Dmolpromise = loadScriptAsync('https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js');
+}
+
+var viewer_17525471067248619 = null;
+var warn = document.getElementById("3dmolwarning_17525471067248619");
+if(warn) {
+    warn.parentNode.removeChild(warn);
+}
+$3Dmolpromise.then(function() {
+viewer_17525471067248619 = $3Dmol.createViewer(document.getElementById("3dmolviewer_17525471067248619"),{backgroundColor:"white"});
+viewer_17525471067248619.zoomTo();
+	viewer_17525471067248619.addModel("HEADER    TEST PROTEIN\nATOM      1  N   ALA A   1      20.000  30.000  40.000  1.00 20.00           N\nATOM      2  CA  ALA A   1      21.000  30.000  40.000  1.00 20.00           C\nATOM      3  C   ALA A   1      22.000  30.000  40.000  1.00 20.00           C\nATOM      4  O   ALA A   1      23.000  30.000  40.000  1.00 20.00           O\nATOM      5  CB  ALA A   1      21.000  31.000  40.000  1.00 20.00           C\nEND\n","pdb");
+	viewer_17525471067248619.setStyle({"model": 0},{"cartoon": {"color": "spectrum"}});
+	viewer_17525471067248619.addModel("MODEL 1\nREMARK VINA RESULT:    -0.062      0.000      0.000\nREMARK INTER + INTRA:          -0.064\nREMARK INTER:                  -0.064\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      16.205  25.599  37.495  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      17.282  26.313  36.689  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      16.753  27.454  36.070  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      15.787  27.477  36.295  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 2\nREMARK VINA RESULT:    -0.059      1.589      2.080\nREMARK INTER + INTRA:          -0.060\nREMARK INTER:                  -0.060\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      17.062  27.499  35.207  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      17.024  27.302  36.717  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      15.702  27.343  37.181  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      15.414  26.401  37.301  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 3\nREMARK VINA RESULT:    -0.048      2.134      2.411\nREMARK INTER + INTRA:          -0.050\nREMARK INTER:                  -0.050\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      17.109  27.400  36.114  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      17.500  27.350  34.642  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      17.486  26.027  34.178  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      17.852  26.046  33.256  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 4\nREMARK VINA RESULT:    -0.048      1.589      1.589\nREMARK INTER + INTRA:          -0.049\nREMARK INTER:                  -0.049\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      15.031  26.361  36.117  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      16.389  27.048  36.168  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      16.820  27.179  37.496  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      17.706  27.627  37.464  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 5\nREMARK VINA RESULT:    -0.017      2.547      2.613\nREMARK INTER + INTRA:          -0.018\nREMARK INTER:                  -0.018\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      16.410  24.885  37.479  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      16.429  24.491  36.008  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      17.489  23.609  35.753  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      17.157  22.698  35.963  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 6\nREMARK VINA RESULT:    -0.003      3.753      3.837\nREMARK INTER + INTRA:          -0.003\nREMARK INTER:                  -0.003\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      16.597  21.683  35.730  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      17.500  22.706  36.406  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      17.294  23.978  35.855  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      17.176  24.602  36.618  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 7\nREMARK VINA RESULT:     0.000      3.890      3.893\nREMARK INTER + INTRA:           0.000\nREMARK INTER:                   0.000\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      15.820  23.184  33.362  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      15.676  24.654  33.734  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      16.831  25.109  34.384  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      16.653  26.046  34.657  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 8\nREMARK VINA RESULT:     0.000      3.306      3.324\nREMARK INTER + INTRA:           0.000\nREMARK INTER:                   0.000\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1      13.912  25.244  35.257  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1      14.203  26.049  33.998  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1      15.176  27.025  34.257  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1      14.703  27.897  34.281  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\nMODEL 9\nREMARK VINA RESULT:     0.000     17.462     17.553\nREMARK INTER + INTRA:           0.000\nREMARK INTER:                   0.000\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK  Name = \nREMARK  2 active torsions:\nREMARK  status: ('A' for Active; 'I' for Inactive)\nREMARK    1  A    between atoms: C_1  and  C_2\nREMARK    2  A    between atoms: C_2  and  O_3\nREMARK                            x       y       z     vdW  Elec       q    Type\nREMARK                         _______ _______ _______ _____ _____    ______ ____\nROOT\nATOM      1  C   UNL     1       4.452  23.176  26.027  0.00  0.00    +0.000 C \nATOM      2  C   UNL     1       4.585  23.407  24.527  0.00  0.00    +0.000 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1       3.494  24.146  24.049  0.00  0.00    +0.000 OA\nATOM      4  H   UNL     1       2.727  23.937  24.642  0.00  0.00    +0.000 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\n","pdbqt");
+	viewer_17525471067248619.setStyle({"model": 1},{"stick": {"colorscheme": "greenCarbon"}});
+	viewer_17525471067248619.addSphere({"center": {"x": 10.0, "y": 20.0, "z": 30.0}, "radius": 3.0, "color": "red", "alpha": 0.3});
+	viewer_17525471067248619.addSphere({"center": {"x": 2.5, "y": 12.5, "z": 22.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 2.5, "y": 12.5, "z": 37.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 2.5, "y": 27.5, "z": 22.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 2.5, "y": 27.5, "z": 37.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 17.5, "y": 12.5, "z": 22.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 17.5, "y": 12.5, "z": 37.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 17.5, "y": 27.5, "z": 22.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.addSphere({"center": {"x": 17.5, "y": 27.5, "z": 37.5}, "radius": 0.5, "color": "blue", "alpha": 0.5});
+	viewer_17525471067248619.zoomTo();
+viewer_17525471067248619.render();
+});
+</script>
+                </div>
+                
+                <h3>所有构象详情</h3>
+                <table class="poses-table">
+                    <thead>
+                        <tr>
+                            <th>构象ID</th>
+                            <th>结合亲和力 (kcal/mol)</th>
+                            <th>RMSD下限</th>
+                            <th>RMSD上限</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: #666;">
+                    <p>说明：红色球体表示预测的结合口袋，蓝色球体表示对接搜索区域边界。</p>
+                </div>
+            </body>
+            </html>
+            

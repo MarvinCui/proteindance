@@ -1,0 +1,59 @@
+# 最终版ProteinDance Dockerfile - 完全解决权限和依赖问题
+# 基于已经成功构建的基础，添加Java支持和权限修复
+
+# 使用已成功的镜像作为基础
+FROM proteindance:latest AS base-working
+
+# 切换到root用户安装系统包和修复权限
+USER root
+
+# 手动安装Java，避免网络问题
+RUN apt-get update || true && \
+    (apt-get install -y --no-install-recommends openjdk-11-jre-headless || \
+     apt-get install -y --no-install-recommends default-jre-headless) && \
+    rm -rf /var/lib/apt/lists/* || true
+
+# 下载Linux版本的AutoDock Vina (如果不存在)
+RUN if [ ! -f /usr/local/bin/vina ]; then \
+        cd /tmp && \
+        (wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64 || \
+         curl -L -o vina_1.2.5_linux_x86_64 https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64) && \
+        chmod +x vina_1.2.5_linux_x86_64 && \
+        mv vina_1.2.5_linux_x86_64 /usr/local/bin/vina; \
+    fi || echo "Vina download failed, will use existing binary"
+
+# 创建必要的目录并设置权限
+RUN mkdir -p /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow && \
+    chown -R 1000:1000 /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow && \
+    chmod 755 /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow
+
+# 确保P2Rank脚本可执行
+RUN chmod +x /app/p2rank/prank || true
+
+# 设置Java环境变量 (OpenJDK 17)
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# 验证所有关键依赖
+RUN echo "🔍 Verifying all dependencies..." && \
+    java -version && \
+    (/usr/local/bin/vina --version || echo "⚠️ Vina not available") && \
+    /app/p2rank/prank help | head -5 || echo "⚠️ P2Rank test failed" && \
+    echo "✅ Dependency verification complete"
+
+# 创建启动前权限修复脚本
+RUN echo '#!/bin/bash' > /app/fix_permissions.sh && \
+    echo 'mkdir -p /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow' >> /app/fix_permissions.sh && \
+    echo 'chown -R 1000:1000 /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow' >> /app/fix_permissions.sh && \
+    echo 'chmod 755 /app/temp /app/backend/logs /app/docking_results /tmp/drug_flow' >> /app/fix_permissions.sh && \
+    chmod +x /app/fix_permissions.sh
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5001/docs || exit 1
+
+# 回到原用户
+USER 1000
+
+# 启动脚本
+CMD ["/bin/bash", "./docker_start.sh"]

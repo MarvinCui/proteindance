@@ -1,0 +1,10 @@
+{
+  "codeLineCounter.includeDirs": [
+    "/Users/wenzhenxiong/Documents/DevProj/proteindance/backend"
+  ],
+  "codeLineCounter.excludePatterns": [
+    "**/node_modules/**",
+    "**/.git/**",
+    ".venv"
+  ]
+}

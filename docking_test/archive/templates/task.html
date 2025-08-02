@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子对接任务详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .header-card {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            font-weight: 600;
+        }
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #343a40;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        .image-thumbnail {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .image-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        #fullscreenImage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1050;
+            text-align: center;
+        }
+        #fullscreenImage img {
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 5vh;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .binding-energy-card {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        .parameter-group {
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            margin-bottom: 15px;
+        }
+        .parameter-label {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-microscope"></i> 分子对接任务详情</h1>
+                    <p class="lead mb-0">任务ID: <span id="taskId"></span></p>
+                </div>
+                <div>
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-home"></i> 返回首页
+                    </a>
+                    <a href="/tasks" class="btn btn-outline-light ms-2">
+                        <i class="fas fa-list"></i> 所有任务
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载指示器 -->
+        <div id="loadingIndicator" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">加载任务信息中...</p>
+        </div>
+        
+        <!-- 任务信息区域 -->
+        <div id="taskDetails" style="display: none;">
+            <!-- 任务状态卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">任务状态</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>状态:</strong> <span id="taskStatus" class="badge"></span></p>
+                            <p><strong>创建时间:</strong> <span id="taskCreatedAt"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>受体文件:</strong> <span id="receptorName"></span></p>
+                            <p><strong>配体文件:</strong> <span id="ligandName"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>完成时间:</strong> <span id="taskCompletedAt"></span></p>
+                            <p><strong>进度:</strong> <span id="taskProgress"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 结果区域 -->
+            <div id="resultsSection" style="display: none;">
+                <!-- 最佳结果摘要 -->
+                <div class="card binding-energy-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-award"></i> 最佳结合构象</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>结合能:</strong> <span id="bestAffinity"></span> kcal/mol</p>
+                                <p><strong>模式:</strong> <span id="bestMode"></span></p>
+                            </div>
+                            <div class="col-md-8">
+                                <p><strong>评估:</strong> <span id="bestAssessment"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3D查看器链接 -->
+                <div class="mb-4">
+                    <a id="viewer3dLink" href="#" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-cube"></i> 在3D查看器中打开
+                    </a>
+                </div>
+
+                <!-- 参数信息 -->
+                <h3 class="section-title"><i class="fas fa-sliders-h"></i> 对接参数</h3>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="parameter-group">
+                            <h5>对接盒子中心</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p class="parameter-label">X:</p>
+                                    <p id="centerX"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="parameter-label">Y:</p>
+                                    <p id="centerY"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="parameter-label">Z:</p>
+                                    <p id="centerZ"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="parameter-group">
+                            <h5>对接盒子大小</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p class="parameter-label">X:</p>
+                                    <p id="sizeX"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="parameter-label">Y:</p>
+                                    <p id="sizeY"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="parameter-label">Z:</p>
+                                    <p id="sizeZ"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="parameter-group">
+                            <p class="parameter-label">搜索彻底程度:</p>
+                            <p id="exhaustiveness"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="parameter-group">
+                            <p class="parameter-label">构象数量:</p>
+                            <p id="numModes"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="parameter-group">
+                            <p class="parameter-label">能量范围:</p>
+                            <p id="energyRange"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 结果可视化部分 -->
+                <h3 class="section-title"><i class="fas fa-chart-bar"></i> 结果可视化</h3>
+                
+                <!-- 结合能分布图 -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">结合能分布</div>
+                            <div class="card-body text-center">
+                                <img id="bindingEnergiesPlot" class="img-fluid image-thumbnail" alt="结合能分布图">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">结合位点可视化</div>
+                            <div class="card-body text-center">
+                                <img id="bindingSitePlot" class="img-fluid image-thumbnail" alt="结合位点可视化">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PyMOL可视化 -->
+                <h3 class="section-title"><i class="fas fa-cube"></i> PyMOL可视化</h3>
+                <div class="row" id="pymolImages">
+                    <!-- PyMOL图像将在这里动态添加 -->
+                </div>
+                
+                <!-- 结合能表格 -->
+                <h3 class="section-title"><i class="fas fa-table"></i> 结合能数据</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>模式</th>
+                                        <th>结合能 (kcal/mol)</th>
+                                        <th>RMSD l.b.</th>
+                                        <th>RMSD u.b.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bindingEnergiesTable">
+                                    <!-- 结合能数据将在这里动态添加 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 错误信息显示 -->
+            <div id="errorSection" style="display: none;">
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> 任务执行出错</h4>
+                    <p id="errorMessage"></p>
+                    <hr>
+                    <p class="mb-0">请检查您的输入文件和参数，然后重试。如果问题持续存在，请联系管理员。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 全屏图像查看器 -->
+    <div id="fullscreenImage">
+        <span class="close-btn">&times;</span>
+        <img id="fullsizeImg" src="" alt="Full-size image">
+    </div>
+    
+    <footer class="bg-light text-center text-muted py-4 mt-5">
+        <div class="container">
+            <p>分子对接与可视化平台 &copy; 2025</p>
+            <p class="mb-0 small">使用AutoDock Vina进行分子对接，使用PyMOL和3Dmol.js进行可视化</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取任务ID
+            const taskId = window.location.pathname.split('/').pop();
+            document.getElementById('taskId').textContent = taskId;
+            
+            // 加载任务数据
+            fetchTaskData(taskId);
+            
+            // 设置图片全屏预览
+            setupImageViewer();
+        });
+        
+        // 获取任务数据
+        function fetchTaskData(taskId) {
+            fetch(`/api/task/${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayTaskData(data.task);
+                    } else {
+                        showError("无法加载任务数据: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    showError("请求错误: " + error);
+                });
+        }
+        
+        // 显示任务数据
+        function displayTaskData(task) {
+            // 隐藏加载指示器
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('taskDetails').style.display = 'block';
+            
+            // 设置任务基本信息
+            const statusBadge = document.getElementById('taskStatus');
+            statusBadge.textContent = getStatusText(task.status);
+            statusBadge.className = `badge ${getStatusClass(task.status)}`;
+            
+            document.getElementById('taskCreatedAt').textContent = formatDate(task.created_at);
+            document.getElementById('receptorName').textContent = task.receptor_name || 'N/A';
+            document.getElementById('ligandName').textContent = task.ligand_name || 'N/A';
+            document.getElementById('taskProgress').textContent = `${task.progress}%`;
+            
+            if (task.completed_at) {
+                document.getElementById('taskCompletedAt').textContent = formatDate(task.completed_at);
+            } else {
+                document.getElementById('taskCompletedAt').textContent = 'N/A';
+            }
+            
+            // 如果任务完成并有结果，显示结果
+            if (task.status === 'completed' && task.results) {
+                document.getElementById('resultsSection').style.display = 'block';
+                displayResults(task);
+            }
+            
+            // 如果任务失败，显示错误信息
+            if (task.status === 'error') {
+                document.getElementById('errorSection').style.display = 'block';
+                document.getElementById('errorMessage').textContent = task.message || '未知错误';
+            }
+        }
+        
+        // 显示结果
+        function displayResults(task) {
+            const results = task.results;
+            
+            // 设置最佳结果
+            if (results.best_result) {
+                const best = results.best_result;
+                document.getElementById('bestAffinity').textContent = best.affinity.toFixed(2);
+                document.getElementById('bestMode').textContent = best.mode;
+                document.getElementById('bestAssessment').textContent = best.assessment;
+            }
+            
+            // 设置3D查看器链接
+            if (task.result_urls && task.result_urls.viewer) {
+                document.getElementById('viewer3dLink').href = task.result_urls.viewer;
+            } else {
+                document.getElementById('viewer3dLink').style.display = 'none';
+            }
+            
+            // 设置参数信息
+            if (results.center) {
+                document.getElementById('centerX').textContent = results.center[0].toFixed(2);
+                document.getElementById('centerY').textContent = results.center[1].toFixed(2);
+                document.getElementById('centerZ').textContent = results.center[2].toFixed(2);
+            }
+            
+            if (results.box_size) {
+                document.getElementById('sizeX').textContent = results.box_size[0].toFixed(2);
+                document.getElementById('sizeY').textContent = results.box_size[1].toFixed(2);
+                document.getElementById('sizeZ').textContent = results.box_size[2].toFixed(2);
+            }
+            
+            if (task.params) {
+                document.getElementById('exhaustiveness').textContent = task.params.exhaustiveness;
+                document.getElementById('numModes').textContent = task.params.num_modes;
+                document.getElementById('energyRange').textContent = task.params.energy_range;
+            }
+            
+            // 设置结合能图
+            if (task.result_urls && task.result_urls.plots) {
+                if (task.result_urls.plots.binding_energies) {
+                    document.getElementById('bindingEnergiesPlot').src = task.result_urls.plots.binding_energies;
+                }
+                
+                if (task.result_urls.plots.binding_site) {
+                    document.getElementById('bindingSitePlot').src = task.result_urls.plots.binding_site;
+                }
+            }
+            
+            // 设置PyMOL图像
+            if (task.result_urls && task.result_urls.pymol_images) {
+                const pymolImagesContainer = document.getElementById('pymolImages');
+                pymolImagesContainer.innerHTML = '';
+                
+                task.result_urls.pymol_images.forEach(image => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-6 mb-4';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card h-100';
+                    
+                    const cardHeader = document.createElement('div');
+                    cardHeader.className = 'card-header';
+                    cardHeader.textContent = image.name.replace('.png', '').replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body text-center';
+                    
+                    const img = document.createElement('img');
+                    img.src = image.url;
+                    img.className = 'img-fluid image-thumbnail';
+                    img.alt = image.name;
+                    
+                    cardBody.appendChild(img);
+                    card.appendChild(cardHeader);
+                    card.appendChild(cardBody);
+                    colDiv.appendChild(card);
+                    pymolImagesContainer.appendChild(colDiv);
+                });
+            }
+            
+            // 设置结合能表格
+            if (results.binding_energies) {
+                const tableBody = document.getElementById('bindingEnergiesTable');
+                tableBody.innerHTML = '';
+                
+                results.binding_energies.forEach(energy => {
+                    const row = document.createElement('tr');
+                    
+                    // 突出显示最佳结果
+                    if (energy.mode === 1) {
+                        row.className = 'table-success';
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${energy.mode}</td>
+                        <td>${energy.affinity.toFixed(2)}</td>
+                        <td>${energy.rmsd_lb.toFixed(2)}</td>
+                        <td>${energy.rmsd_ub.toFixed(2)}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+        
+        // 设置图片全屏预览
+        function setupImageViewer() {
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('image-thumbnail')) {
+                    const fullscreenImg = document.getElementById('fullsizeImg');
+                    fullscreenImg.src = e.target.src;
+                    document.getElementById('fullscreenImage').style.display = 'block';
+                }
+            });
+            
+            document.querySelector('.close-btn').addEventListener('click', function() {
+                document.getElementById('fullscreenImage').style.display = 'none';
+            });
+            
+            document.getElementById('fullscreenImage').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+        }
+        
+        // 显示错误
+        function showError(message) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('taskDetails').style.display = 'block';
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            switch (status) {
+                case 'queued': return '排队中';
+                case 'running': return '运行中';
+                case 'completed': return '已完成';
+                case 'error': return '出错';
+                default: return status;
+            }
+        }
+        
+        // 获取状态样式类
+        function getStatusClass(status) {
+            switch (status) {
+                case 'queued': return 'bg-secondary';
+                case 'running': return 'bg-primary';
+                case 'completed': return 'bg-success';
+                case 'error': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+    </script>
+</body>
+</html>

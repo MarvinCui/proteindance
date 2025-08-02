@@ -1,0 +1,34 @@
+{
+  "workflow_id": "test-20250715",
+  "disease": "test cancer",
+  "geneSymbol": "EGFR",
+  "uniprotAcc": "P00533",
+  "docking_result": {
+    "success": true,
+    "best_score": 0.00,
+    "num_poses": 1,
+    "poses": [
+      {
+        "pose_id": 1,
+        "binding_affinity": 0.00,
+        "rmsd_lower": 0.0,
+        "rmsd_upper": 0.0
+      }
+    ],
+    "ligand_smiles": "Cc1cc(C(=O)N2CCOCC2)[nH]c1C=C1C(=O)Nc2ncnc(Nc3ccc4c(c3)CCC4)c21",
+    "protein_path": "/var/folders/vp/q6lst52d7xl6snwsv4_84n8r0000gn/T/drug_flow/pdb1ivo.ent",
+    "timestamp": "2025-07-15 12:30:00"
+  },
+  "pocketCenter": [115.6, 69.38, 45.46],
+  "molecule_image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "docking_visualization": {
+    "success": true,
+    "html_content": "<html><body><h3>对接可视化</h3></body></html>",
+    "docking_summary": {
+      "ligand_smiles": "Cc1cc(C(=O)N2CCOCC2)[nH]c1C=C1C(=O)Nc2ncnc(Nc3ccc4c(c3)CCC4)c21",
+      "best_score": 0.00,
+      "num_poses": 1,
+      "pocket_center": [115.6, 69.38, 45.46]
+    }
+  }
+}

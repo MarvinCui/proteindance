@@ -1,0 +1,5 @@
+.git
+.history
+node_modules
+__pycache__
+*.log

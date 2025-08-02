@@ -1,0 +1,201 @@
+# 全面的ProteinDance Dockerfile - 解决所有依赖问题
+# Multi-stage build for optimal size and performance
+
+# Stage 1: Frontend build  
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /app/frontend
+COPY autoui/package*.json ./
+
+# Fix for ARM64 rollup issue - clean install
+RUN rm -rf node_modules package-lock.json 2>/dev/null || true
+RUN npm install
+
+COPY autoui/ ./
+# Set environment variables for production build
+ENV VITE_API_BASE_URL=http://localhost:5001/api
+ENV VITE_BACKEND_HOST=localhost  
+ENV VITE_BACKEND_PORT=5001
+
+RUN npm run build
+
+# Stage 2: Complete backend with all dependencies
+FROM continuumio/miniconda3:latest AS backend
+
+# 避免交互式安装
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# 1. 安装系统依赖 - 分批安装避免网络超时
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # 基础工具
+    curl \
+    wget \
+    git \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. 安装Java (OpenJDK 11) - P2Rank依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openjdk-11-jre-headless \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. 安装构建工具和开发依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# 4. 安装系统库支持 - 科学计算和PyMOL
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # 基础系统库
+    lsof \
+    procps \
+    # PyMOL和图形库支持
+    libgl1-mesa-glx \
+    libglu1-mesa \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    # 科学计算库
+    libopenblas-dev \
+    liblapack-dev \
+    libhdf5-dev \
+    # 网络和压缩
+    libssl-dev \
+    libffi-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 5. 安装Node.js (用于前端服务)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# 6. 下载并安装Linux版本的AutoDock Vina
+RUN cd /tmp && \
+    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64 && \
+    chmod +x vina_1.2.5_linux_x86_64 && \
+    mv vina_1.2.5_linux_x86_64 /usr/local/bin/vina
+
+WORKDIR /app
+
+# 7. 创建和配置conda环境
+RUN conda create -n proteindance python=3.11 -y
+
+# 激活环境用于后续安装
+SHELL ["conda", "run", "-n", "proteindance", "/bin/bash", "-c"]
+
+# 8. 安装核心科学计算包 (通过conda - 更稳定)
+RUN conda install -c conda-forge -y \
+    numpy=1.26.4 \
+    scipy \
+    matplotlib \
+    pandas \
+    pillow \
+    scikit-learn \
+    requests \
+    beautifulsoup4 \
+    click \
+    jinja2 \
+    packaging \
+    python-dateutil \
+    pytz \
+    tqdm
+
+# 9. 安装RDKit (conda-forge版本最稳定)
+RUN conda install -c conda-forge rdkit -y
+
+# 10. 安装PyMOL (conda-forge版本)
+RUN conda install -c conda-forge pymol-open-source -y
+
+# 11. 安装Web框架和API包
+RUN pip install --no-cache-dir --timeout=60 \
+    fastapi==0.115.12 \
+    uvicorn==0.34.2 \
+    pydantic==2.11.3 \
+    starlette==0.46.2
+
+# 12. 安装认证和安全包
+RUN pip install --no-cache-dir --timeout=60 \
+    email-validator \
+    PyJWT \
+    passlib \
+    bcrypt \
+    python-dotenv
+
+# 13. 安装AI和机器学习包
+RUN pip install --no-cache-dir --timeout=60 \
+    openai==1.77.0 \
+    transformers>=4.53.0 \
+    safetensors>=0.5.0
+
+# 14. 安装PyTorch (CPU版本)
+RUN pip install --no-cache-dir --timeout=120 \
+    torch>=2.0.0 \
+    torchvision \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# 15. 安装生物信息学包
+RUN pip install --no-cache-dir --timeout=60 \
+    biopython==1.85 \
+    py3dmol==2.4.2 \
+    chembl-webresource-client==0.10.9 \
+    gprofiler-official==1.0.0 \
+    mygene==3.2.2 \
+    biothings-client==0.4.1
+
+# 16. 安装其他依赖包
+RUN pip install --no-cache-dir --timeout=60 \
+    ipython \
+    requests-cache \
+    bio
+
+# 复制应用代码和配置文件
+COPY backend/ ./backend/
+COPY p2rank/ ./p2rank/
+COPY proteindance.db ./proteindance.db
+COPY requirements.txt ./requirements.txt
+
+# 复制前端构建结果
+COPY --from=frontend-builder /app/frontend/dist ./autoui/dist/
+
+# 复制脚本文件
+COPY start.sh ./start.sh
+COPY setup_conda_env.sh ./setup_conda_env.sh
+COPY docker_start.sh ./docker_start.sh
+RUN chmod +x start.sh setup_conda_env.sh docker_start.sh
+
+# 确保P2Rank脚本可执行
+RUN chmod +x p2rank/prank
+
+# 验证Java安装
+RUN java -version
+
+# 验证Vina安装  
+RUN vina --version || echo "Vina installed but version check failed"
+
+# 设置环境变量
+ENV PATH="/opt/conda/envs/proteindance/bin:$PATH"
+ENV KMP_DUPLICATE_LIB_OK=TRUE
+ENV PYTHONPATH="/app:$PYTHONPATH"
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# PyMOL headless mode
+ENV QT_QPA_PLATFORM=offscreen
+ENV DISPLAY=:99
+ENV PYMOL_PATH=/opt/conda/envs/proteindance
+
+# 暴露端口
+EXPOSE 5001 5173
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5001/docs || exit 1
+
+# 启动脚本
+CMD ["/bin/bash", "./docker_start.sh"]

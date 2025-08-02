@@ -17,7 +17,7 @@ RUN npm run build
 # Stage 2: Python backend with conda and PyMOL
 FROM continuumio/miniconda3:latest AS backend
 
-# Install system dependencies for GUI and scientific packages
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -25,31 +25,6 @@ RUN apt-get update && apt-get install -y \
     git \
     lsof \
     procps \
-    pkg-config \
-    # OpenGL and display libraries for PyMOL
-    libgl1-mesa-glx \
-    libgl1-mesa-dri \
-    libglu1-mesa \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxtst6 \
-    libxi6 \
-    libxrandr2 \
-    libxss1 \
-    libgconf-2-4 \
-    # System libraries for scientific computing
-    libglib2.0-0 \
-    libsm6 \
-    libice6 \
-    libfontconfig1 \
-    libfreetype6 \
-    libxft2 \
-    # Additional dependencies
-    libopenblas-dev \
-    liblapack-dev \
-    libhdf5-dev \
-    libnetcdf-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js for frontend serving
@@ -141,7 +116,10 @@ RUN chmod +x start.sh setup_conda_env.sh docker_start.sh
 ENV PATH="/opt/conda/envs/proteindance/bin:$PATH"
 ENV KMP_DUPLICATE_LIB_OK=TRUE
 ENV PYTHONPATH="/app:$PYTHONPATH"
+# PyMOL headless mode environment variables
+ENV QT_QPA_PLATFORM=offscreen
 ENV DISPLAY=:99
+ENV PYMOL_PATH=/opt/conda/envs/proteindance
 
 # Expose ports
 EXPOSE 5001 5173

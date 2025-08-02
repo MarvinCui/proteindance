@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分子对接任务列表</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      body {
+        padding-top: 20px;
+        background-color: #f8f9fa;
+      }
+      .header-card {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+      }
+      .task-card {
+        transition: transform 0.2s;
+      }
+      .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #6c757d;
+      }
+      .empty-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+      }
+      .no-tasks-message {
+        font-size: 1.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- 头部 -->
+      <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h1><i class="fas fa-tasks"></i> 分子对接任务列表</h1>
+            <p class="lead mb-0">查看和管理所有对接任务</p>
+          </div>
+          <div>
+            <a href="/" class="btn btn-outline-light">
+              <i class="fas fa-plus"></i> 创建新任务
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 加载指示器 -->
+      <div id="loadingIndicator" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">加载任务列表中...</p>
+      </div>
+
+      <!-- 任务列表 -->
+      <div id="taskList" style="display: none">
+        <!-- 任务卡片将动态添加到这里 -->
+      </div>
+
+      <!-- 空状态 -->
+      <div id="emptyState" style="display: none">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-flask"></i>
+          </div>
+          <p class="no-tasks-message">暂无对接任务</p>
+          <p>返回首页创建您的第一个分子对接任务</p>
+          <a href="/" class="btn btn-primary mt-3">
+            <i class="fas fa-plus"></i> 创建任务
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-light text-center text-muted py-4 mt-5">
+      <div class="container">
+        <p>分子对接与可视化平台 &copy; 2025</p>
+        <p class="mb-0 small"
+          >使用AutoDock Vina进行分子对接，使用PyMOL和3Dmol.js进行可视化</p
+        >
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 加载任务列表
+        fetchTasksList();
+
+        // 每30秒刷新一次任务列表
+        setInterval(fetchTasksList, 30000);
+      });
+
+      // 获取任务列表
+      function fetchTasksList() {
+        fetch("/api/tasks")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              displayTasks(data.tasks);
+            } else {
+              showError("无法加载任务列表: " + data.error);
+            }
+          })
+          .catch((error) => {
+            showError("请求错误: " + error);
+          });
+      }
+
+      // 显示任务列表
+      function displayTasks(tasks) {
+        // 隐藏加载指示器
+        document.getElementById("loadingIndicator").style.display = "none";
+
+        // 检查是否有任务
+        if (tasks.length === 0) {
+          document.getElementById("emptyState").style.display = "block";
+          document.getElementById("taskList").style.display = "none";
+          return;
+        }
+
+        // 显示任务列表
+        const taskListContainer = document.getElementById("taskList");
+        taskListContainer.style.display = "block";
+        taskListContainer.innerHTML = "";
+
+        // 对任务按创建时间降序排序
+        tasks.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        // 创建任务卡片
+        tasks.forEach((task) => {
+          const taskCard = createTaskCard(task);
+          taskListContainer.appendChild(taskCard);
+        });
+      }
+
+      // 创建任务卡片
+      function createTaskCard(task) {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card task-card";
+
+        // 设置卡片边框颜色
+        const borderColor = getStatusBorderColor(task.status);
+        if (borderColor) {
+          cardDiv.style.borderLeft = `5px solid ${borderColor}`;
+        }
+
+        const cardHeader = document.createElement("div");
+        cardHeader.className =
+          "card-header d-flex justify-content-between align-items-center";
+
+        const taskTitle = document.createElement("span");
+        const taskIcon = document.createElement("i");
+        taskIcon.className = getStatusIcon(task.status);
+        taskIcon.style.marginRight = "8px";
+
+        const taskTitleText = document.createTextNode(
+          `任务 ${task.id.substr(0, 8)}...`
+        );
+        taskTitle.appendChild(taskIcon);
+        taskTitle.appendChild(taskTitleText);
+
+        const statusBadge = document.createElement("span");
+        statusBadge.className = `badge ${getStatusClass(task.status)}`;
+        statusBadge.textContent = getStatusText(task.status);
+
+        cardHeader.appendChild(taskTitle);
+        cardHeader.appendChild(statusBadge);
+
+        const cardBody = document.createElement("div");
+        cardBody.className = "card-body";
+
+        cardBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>受体文件:</strong> ${task.receptor_name}</p>
+                        <p><strong>配体文件:</strong> ${task.ligand_name}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>创建时间:</strong> ${formatDate(
+                          task.created_at
+                        )}</p>
+                        <p><strong>进度:</strong> ${task.progress}%</p>
+                    </div>
+                </div>
+                <p><strong>状态消息:</strong> ${task.message}</p>
+                
+                <div class="progress mb-3">
+                    <div class="progress-bar ${getProgressBarClass(
+                      task.status
+                    )}" role="progressbar" 
+                         style="width: ${task.progress}%" aria-valuenow="${
+          task.progress
+        }" 
+                         aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                
+                <div class="text-end">
+                    <a href="/task/${task.id}" class="btn btn-primary">
+                        <i class="fas fa-search"></i> 查看详情
+                    </a>
+                </div>
+            `;
+
+        cardDiv.appendChild(cardHeader);
+        cardDiv.appendChild(cardBody);
+
+        return cardDiv;
+      }
+
+      // 显示错误
+      function showError(message) {
+        document.getElementById("loadingIndicator").style.display = "none";
+
+        const taskListContainer = document.getElementById("taskList");
+        taskListContainer.style.display = "block";
+        taskListContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </div>
+            `;
+      }
+
+      // 获取状态文本
+      function getStatusText(status) {
+        switch (status) {
+          case "queued":
+            return "排队中";
+          case "running":
+            return "运行中";
+          case "completed":
+            return "已完成";
+          case "error":
+            return "出错";
+          default:
+            return status;
+        }
+      }
+
+      // 获取状态样式类
+      function getStatusClass(status) {
+        switch (status) {
+          case "queued":
+            return "bg-secondary";
+          case "running":
+            return "bg-primary";
+          case "completed":
+            return "bg-success";
+          case "error":
+            return "bg-danger";
+          default:
+            return "bg-secondary";
+        }
+      }
+
+      // 获取进度条样式类
+      function getProgressBarClass(status) {
+        switch (status) {
+          case "running":
+            return "progress-bar-striped progress-bar-animated";
+          case "completed":
+            return "bg-success";
+          case "error":
+            return "bg-danger";
+          default:
+            return "";
+        }
+      }
+
+      // 获取状态图标
+      function getStatusIcon(status) {
+        switch (status) {
+          case "queued":
+            return "fas fa-clock";
+          case "running":
+            return "fas fa-cogs fa-spin";
+          case "completed":
+            return "fas fa-check-circle";
+          case "error":
+            return "fas fa-exclamation-triangle";
+          default:
+            return "fas fa-flask";
+        }
+      }
+
+      // 获取状态边框颜色
+      function getStatusBorderColor(status) {
+        switch (status) {
+          case "queued":
+            return "#6c757d";
+          case "running":
+            return "#0d6efd";
+          case "completed":
+            return "#198754";
+          case "error":
+            return "#dc3545";
+          default:
+            return null;
+        }
+      }
+
+      // 格式化日期
+      function formatDate(dateString) {
+        if (!dateString) return "N/A";
+
+        const date = new Date(dateString);
+        return date.toLocaleString();
+      }
+    </script>
+  </body>
+</html>
