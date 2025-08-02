@@ -1,0 +1,59 @@
+# =========================
+# —— 依赖安装 & 构建阶段 ——
+# =========================
+FROM python:3.12-slim AS builder
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      openjdk-17-jdk-headless \
+      build-essential \
+      python3-dev \
+      libxrender1 libxext6 libx11-6 fontconfig \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 安装 Python 依赖
+COPY requirements.txt .
+RUN pip install --no-cache-dir \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    --timeout 120 \
+    -r requirements.txt
+
+# 复制脚本和 P2Rank
+COPY services_func.py .
+COPY backend/ backend/
+COPY p2rank/    p2rank/
+
+
+# =================
+# —— 运行镜像 ——
+# =================
+FROM python:3.12-slim
+
+# 安装完整 JDK + X11 渲染依赖
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      openjdk-17-jdk-headless \
+      libxrender1 libxext6 libx11-6 fontconfig \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 拷贝 builder 阶段内容
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /app       /app
+
+# 设置 Java 环境变量（Debian 默认路径）
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# 安装 Uvicorn
+RUN pip install --no-cache-dir \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    --timeout 120 \
+    uvicorn
+
+EXPOSE 5001
+
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "5001", "--workers", "4"]

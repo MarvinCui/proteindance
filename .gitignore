@@ -1,0 +1,40 @@
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+*.iml
+out
+gen
+.DS_Store
+.history/
+.idea/
+__pycache__/
+*.py[cod]
+drug_discovery.log
+**/__pycache__/
+*.pyc
+docking_test/molecular-docking/
+backend/services/aimodels/
+archive/py396_env/
+
+# Temporary files and session data
+temp/
+
+# Python environments
+.conda_env/
+conda_env/
+.venv/
+.venv
+
+# AI models and large files
+backend/services/aimodels/*/model.safetensors
+backend/services/aimodels/*/
+*.safetensors
+*.zip
+final_model.zip
+final_model/
+
+# Large binary files
+*.dylib
+*.so
+*.dll
